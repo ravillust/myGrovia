@@ -65,7 +65,7 @@ class CollectionPage extends StatelessWidget {
       children: [
         const Spacer(flex: 2),
         _buildPlantIllustration(),
-        const Spacer(flex: 2),
+        const SizedBox(height: 24),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 38),
           child: Text(
@@ -79,7 +79,7 @@ class CollectionPage extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 9),
+        const SizedBox(height: 25),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 35),
           child: Text(
@@ -88,7 +88,7 @@ class CollectionPage extends StatelessWidget {
             style: TextStyle(color: mutedText, fontSize: 16, height: 1.35),
           ),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 25),
         SizedBox(
           width: 252,
           height: 55,
