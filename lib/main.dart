@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-import 'pages/collection_page.dart';
+import 'pages/home_page.dart';
+import 'widgets/plant_widgets.dart';
 
 void main() {
   runApp(const MyGroviaApp());
@@ -16,21 +16,70 @@ class MyGroviaApp extends StatelessWidget {
       title: 'myGrovia',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff4f8e73)),
-        fontFamily: GoogleFonts.inter().fontFamily,
-        textTheme: TextTheme(
-          titleLarge: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
-          headlineSmall: GoogleFonts.plusJakartaSans(
+        colorScheme: ColorScheme.fromSeed(seedColor: plantGreen).copyWith(
+          primary: plantGreen,
+          secondaryContainer: neutralSurface,
+          surface: Colors.white,
+          surfaceTint: Colors.transparent,
+        ),
+        fontFamily: 'PlusJakartaSans',
+        textTheme: const TextTheme(
+          headlineMedium: TextStyle(
+            fontFamily: 'PlusJakartaSans',
             fontWeight: FontWeight.w700,
           ),
-          bodyLarge: GoogleFonts.inter(),
-          bodyMedium: GoogleFonts.inter(),
-          labelLarge: GoogleFonts.inter(fontWeight: FontWeight.w500),
+          titleLarge: TextStyle(
+            fontFamily: 'PlusJakartaSans',
+            fontWeight: FontWeight.w700,
+          ),
+          headlineSmall: TextStyle(
+            fontFamily: 'PlusJakartaSans',
+            fontWeight: FontWeight.w700,
+          ),
+          labelLarge: TextStyle(fontWeight: FontWeight.w600),
         ),
-        scaffoldBackgroundColor: const Color(0xfff8faf7),
+        scaffoldBackgroundColor: const Color(0xfffaf9f6),
+        dialogTheme: DialogThemeData(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xfffaf9f6),
+          surfaceTintColor: Colors.transparent,
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: plantGreen, width: 1.5),
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: Color(0xffdce2dc)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: Color(0xffdce2dc)),
+          ),
+        ),
+        chipTheme: ChipThemeData(
+          selectedColor: neutralSurface,
+          side: BorderSide.none,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+        ),
         useMaterial3: true,
       ),
-      home: const CollectionPage(),
+      home: const HomePage(),
     );
   }
 }

@@ -1,0 +1,20 @@
+{
+  "info": {
+    "name": "myGrovia - Plant catalog",
+    "description": "GET dataset Plantfolio melalui HTTPS. JSON v2.1 untuk klien yang mendukung; di Thunder Client cukup buat request manual.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get plants",
+      "request": {
+        "method": "GET",
+        "auth": { "type": "noauth" },
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": "https://raw.githubusercontent.com/Luminoid/plantfolio-common-plants/bbb364534cfbca28168085897ac9f2ff00a151a5/dist/common_plants.json"
+      }
+    }
+  ]
+}

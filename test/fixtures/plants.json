@@ -1,0 +1,228 @@
+[
+  {
+    "_metadata": {
+      "version": "1.10.0",
+      "totalPlants": 980,
+      "sorting": {
+        "method": "Categorized then alphabetical",
+        "categories": [
+          "Houseplants - Low Maintenance",
+          "Houseplants - Aroids",
+          "Houseplants - Ferns",
+          "Houseplants - Palms",
+          "Houseplants - Succulents",
+          "Houseplants - Cacti",
+          "Houseplants - Flowering",
+          "Houseplants - Prayer Plants",
+          "Houseplants - Vines & Trailing",
+          "Houseplants - Ficus & Fig",
+          "Houseplants - Specialty",
+          "Outdoor - Trees",
+          "Outdoor - Shrubs",
+          "Outdoor - Perennials",
+          "Outdoor - Annuals",
+          "Outdoor - Vines & Climbers",
+          "Outdoor - Groundcovers & Grasses",
+          "Vegetables - Leafy Greens",
+          "Vegetables - Fruiting",
+          "Vegetables - Root & Bulb",
+          "Fruits & Berries",
+          "Nuts & Nut Trees",
+          "Herbs",
+          "Farm & Field Crops",
+          "Sprouts & Microgreens",
+          "Bulbs",
+          "Specialty - Aquatic & Bog",
+          "Specialty - Carnivorous",
+          "Specialty - Epiphytes & Moss",
+          "Specialty - Alpine"
+        ],
+        "note": "Each plant entry includes a 'category' field for annotation. Plants are sorted by category, then alphabetically by typeName within each category."
+      }
+    }
+  },
+  {
+    "id": "aglaonema",
+    "typeName": "Aglaonema",
+    "description": "Also known as: Chinese evergreen. Low-light tolerant aroids with variegated foliage in shades of green, silver, pink, or red.",
+    "commonExamples": "Aglaonema commutatum (Chinese evergreen), A. pictum, A. 'Silver Bay', A. 'Maria', A. 'Red Siam', A. 'Pink Star'",
+    "careTips": "Water when top 1-2 inches of soil feels dry. Keep slightly more moist than other low-light plants but avoid soggy soil. Bright indirect light maintains variegation; low light is tolerated but may reduce color. Maintain 50-60% humidity. Fertilize monthly spring through fall with balanced liquid fertilizer (20-20-20) diluted to half strength. Wipe leaves monthly with damp cloth to remove dust and improve photosynthesis. Repot every 2-3 years in spring when roots fill container. Prune yellowing leaves at base. Watch for spider mites in dry conditions. Toxic to pets.",
+    "origin": "Tropical Asia",
+    "springInterval": 7,
+    "summerInterval": 7,
+    "fallInterval": 10,
+    "winterInterval": 14,
+    "lightPreference": "lowIndirect",
+    "humidityPreference": "medium",
+    "temperaturePreference": [
+      18,
+      27
+    ],
+    "plantToxicity": "toxic",
+    "soilPhPreference": "neutral",
+    "drainagePreference": "wellDraining",
+    "wateringMethod": "topWatering",
+    "plantLifeSpan": [
+      5,
+      15
+    ],
+    "category": "Houseplants - Low Maintenance",
+    "hardinessZones": [
+      10,
+      12
+    ],
+    "growthRate": "moderate",
+    "propagationMethods": [
+      "stemCuttings",
+      "division"
+    ],
+    "categoryIndex": 0
+  },
+  {
+    "id": "snake-plants",
+    "typeName": "Snake Plants",
+    "description": "Also known as: Mother-in-law's tongue. Extremely low-maintenance succulents in the Asparagaceae family with upright sword-like leaves. Includes various cultivars with different leaf shapes and patterns.",
+    "commonExamples": "Dracaena trifasciata (syn. Sansevieria trifasciata; Mother-in-law's tongue), D. trifasciata 'Laurentii', D. trifasciata 'Moonshine', D. trifasciata 'Black Gold', Dracaena angolensis (syn. Sansevieria cylindrica; cylindrical snake plant)",
+    "careTips": "Water only when soil is completely dry (every 2-8 weeks depending on conditions). Very drought tolerant due to water storage in leaves. Bright indirect to direct light preferred; tolerates low light but grows slowly. Low humidity is fine. Fertilize 2-3 times per year during growing season with succulent fertilizer at quarter strength. Repot only when pot breaks or plant becomes top-heavy (every 5-10 years). Remove dead leaves at base by pulling gently. Divide offsets when repotting. Overwatering is the main cause of death - when in doubt, wait longer. Toxic to pets. Remove yellowing or damaged leaves promptly.",
+    "origin": "West Africa",
+    "springInterval": 14,
+    "summerInterval": 14,
+    "fallInterval": 21,
+    "winterInterval": 30,
+    "lightPreference": "brightIndirect",
+    "humidityPreference": "low",
+    "temperaturePreference": [
+      18,
+      27
+    ],
+    "plantToxicity": "toxic",
+    "soilPhPreference": "neutral",
+    "drainagePreference": "excellentDrainage",
+    "wateringMethod": "topWatering",
+    "plantLifeSpan": [
+      10,
+      25
+    ],
+    "category": "Houseplants - Low Maintenance",
+    "hardinessZones": [
+      10,
+      12
+    ],
+    "growthRate": "slow",
+    "propagationMethods": [
+      "division",
+      "leafCuttings"
+    ],
+    "categoryIndex": 0
+  },
+  {
+    "id": "golden-pothos",
+    "typeName": "Golden Pothos",
+    "description": "Also known as: Devil's ivy. Most common pothos variety with green and yellow variegated leaves, extremely easy-care.",
+    "commonExamples": "Epipremnum aureum 'Golden' (Golden pothos, Devil's ivy)",
+    "careTips": "Water when top inch of soil is dry. Very forgiving of neglect and inconsistent watering. Bright indirect light maintains golden variegation; tolerates low light but may lose variegation. Medium humidity is fine. Fertilize monthly spring through fall with balanced fertilizer at half strength. Prune to control length and encourage bushiness. Repot every 1-2 years. Excellent for beginners. Mildly toxic to pets—may cause GI upset.",
+    "origin": "French Polynesia",
+    "springInterval": 7,
+    "summerInterval": 7,
+    "fallInterval": 10,
+    "winterInterval": 14,
+    "lightPreference": "mediumIndirect",
+    "humidityPreference": "medium",
+    "temperaturePreference": [
+      18,
+      29
+    ],
+    "plantToxicity": "mildlyToxic",
+    "soilPhPreference": "neutral",
+    "drainagePreference": "wellDraining",
+    "wateringMethod": "topWatering",
+    "plantLifeSpan": [
+      5,
+      15
+    ],
+    "category": "Houseplants - Aroids",
+    "hardinessZones": [
+      10,
+      12
+    ],
+    "growthRate": "fast",
+    "propagationMethods": [
+      "stemCuttings",
+      "layering"
+    ],
+    "categoryIndex": 1
+  },
+  {
+    "id": "swiss-cheese-plant",
+    "typeName": "Swiss Cheese Plant",
+    "description": "Also known as: Mexican breadfruit. Popular tropical aroid with distinctive split and perforated leaves (fenestrations), develops larger leaves with age.",
+    "commonExamples": "Monstera deliciosa (Swiss cheese plant, Split-leaf philodendron, Mexican breadfruit), M. adansonii (Monkey mask, Swiss cheese vine)",
+    "careTips": "Water when top 2 inches of soil is dry. Keep consistently moist but well-drained. Bright indirect light encourages fenestrations (splits) in mature leaves. High humidity (60-70%) preferred. Fertilize monthly spring through fall with balanced fertilizer at half strength. Provide moss pole or trellis for climbing - this encourages much larger leaves with more fenestrations. Repot every 1-2 years. Wipe large leaves monthly. Mildly toxic to pets—may cause GI upset. Remove yellowing or dead leaves promptly.",
+    "origin": "Mexico",
+    "springInterval": 7,
+    "summerInterval": 7,
+    "fallInterval": 10,
+    "winterInterval": 14,
+    "lightPreference": "brightIndirect",
+    "humidityPreference": "high",
+    "temperaturePreference": [
+      18,
+      29
+    ],
+    "plantToxicity": "mildlyToxic",
+    "soilPhPreference": "neutral",
+    "drainagePreference": "wellDraining",
+    "wateringMethod": "topWatering",
+    "plantLifeSpan": [
+      5,
+      20
+    ],
+    "category": "Houseplants - Aroids",
+    "hardinessZones": [
+      10,
+      12
+    ],
+    "growthRate": "fast",
+    "propagationMethods": [
+      "stemCuttings",
+      "airLayering"
+    ],
+    "categoryIndex": 1
+  },
+  {
+    "id": "calathea-orbifolia",
+    "typeName": "Calathea Orbifolia",
+    "description": "Also known as: Round-leaved calathea. Large prayer plant with silver-striped round leaves, requires high humidity, leaves fold up at night (nyctinasty).",
+    "commonExamples": "Goeppertia orbifolia (Calathea orbifolia, Round-leaved calathea)",
+    "careTips": "Keep soil evenly moist, never let dry. High humidity (60-70%) essential - use humidifier. Use only distilled or filtered water to prevent leaf browning. Bright indirect light preferred; direct sun fades silver stripes. Fertilize monthly spring through fall with balanced fertilizer at half strength. Leaves fold up at night (nyctinasty). Repot every 1-2 years. One of the larger calathea varieties. Wipe large leaves monthly. Non-toxic to pets. Remove yellowing or dead leaves promptly.",
+    "origin": "Bolivia",
+    "springInterval": 4,
+    "summerInterval": 4,
+    "fallInterval": 7,
+    "winterInterval": 10,
+    "lightPreference": "mediumIndirect",
+    "humidityPreference": "veryHigh",
+    "temperaturePreference": [
+      18,
+      24
+    ],
+    "plantToxicity": "nonToxic",
+    "soilPhPreference": "neutral",
+    "drainagePreference": "moistureRetentive",
+    "wateringMethod": "topWatering",
+    "plantLifeSpan": [
+      3,
+      10
+    ],
+    "category": "Houseplants - Prayer Plants",
+    "hardinessZones": [
+      11,
+      12
+    ],
+    "growthRate": "moderate",
+    "propagationMethods": [
+      "division"
+    ],
+    "categoryIndex": 7
+  }
+]

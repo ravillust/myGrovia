@@ -1,169 +1,185 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
+
+import '../model/plant.dart';
+import '../widgets/plant_widgets.dart';
+import 'collection_detail_page.dart';
 
 class CollectionPage extends StatelessWidget {
-  const CollectionPage({super.key});
-
-  static const green = Color(0xff347c5c);
-  static const darkText = Color(0xff202620);
-  static const mutedText = Color(0xff7d857f);
-
+  final List<CollectionPlant> plants;
+  final VoidCallback onBrowse;
+  final VoidCallback onChanged;
+  const CollectionPage({
+    super.key,
+    required this.plants,
+    required this.onBrowse,
+    required this.onChanged,
+  });
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xfff8faf7),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(flex: 14, child: _buildHeader()),
-            Expanded(flex: 77, child: _buildEmptyCollection()),
-            Expanded(flex: 9, child: _buildBottomNavigation()),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'My collection',
-                  style: GoogleFonts.plusJakartaSans(
-                    color: darkText,
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                const Text(
-                  'Your personal plant care space.',
-                  style: TextStyle(color: mutedText, fontSize: 16),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: const Icon(Icons.add, color: green, size: 32),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyCollection() {
+    Widget collectionContent;
+    if (plants.isEmpty) {
+      collectionContent = emptyCollection();
+    } else {
+      collectionContent = buildPlantList(context);
+    }
     return Column(
       children: [
-        const Spacer(flex: 2),
-        _buildPlantIllustration(),
-        const SizedBox(height: 24),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 38),
-          child: Text(
-            'Your collection is ready to\ngrow',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
-              color: darkText,
-              fontSize: 24,
-              height: 1.15,
-              fontWeight: FontWeight.w800,
-            ),
+        PageHeading(
+          title: 'My collection',
+          action: IconButton(
+            tooltip: 'Add a plant',
+            onPressed: onBrowse,
+            icon: const Icon(Icons.add, size: 30, color: plantGreen),
           ),
         ),
-        const SizedBox(height: 25),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 35),
-          child: Text(
-            'Save your first plant to track watering, build a\ncare rhythm, and keep every leaf thriving.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: mutedText, fontSize: 16, height: 1.35),
-          ),
-        ),
-        const SizedBox(height: 25),
-        SizedBox(
-          width: 252,
-          height: 55,
-          child: ElevatedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.eco_outlined, size: 22),
-            label: const Text(
-              'Browse plant dictionary',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: green,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-          ),
-        ),
-        const Spacer(flex: 3),
-        const Text(
-          'Tip: start with an easy-care plant',
-          style: TextStyle(color: mutedText, fontSize: 12),
-        ),
-        const SizedBox(height: 8),
+        Expanded(child: collectionContent),
       ],
     );
   }
 
-  Widget _buildPlantIllustration() {
-    return SvgPicture.asset(
-      'assets/illustration/empty_collection_plant.svg',
-      width: 180,
-      height: 180,
-      fit: BoxFit.contain,
-    );
-  }
-
-  Widget _buildBottomNavigation() {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xffeef1ee))),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(child: _NavigationItem(icon: Icons.explore_outlined)),
-          Expanded(
-            child: _NavigationItem(
-              icon: Icons.local_florist_outlined,
-              selected: true,
+  Widget buildPlantList(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      children: [
+        for (final CollectionPlant item in plants)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Material(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return CollectionDetailPage(
+                          item: item,
+                          onChanged: onChanged,
+                          onDelete: () {
+                            plants.remove(item);
+                            onChanged();
+                          },
+                        );
+                      },
+                    ),
+                  );
+                  if (context.mounted) {
+                    onChanged();
+                  }
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 90,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: PlantPhoto(plant: item.plant, height: 108),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.plant.name,
+                              style: const TextStyle(
+                                fontFamily: 'PlusJakartaSans',
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              item.room,
+                              style: const TextStyle(
+                                color: mutedText,
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.water_drop_outlined,
+                                  size: 17,
+                                  color: wateringStatusColor(item),
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    item.status,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: wateringStatusColor(item),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(
+                        Icons.chevron_right,
+                        color: mutedText,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
-          Expanded(child: _NavigationItem(icon: Icons.person_outline)),
-        ],
-      ),
+        const SizedBox(height: 24),
+      ],
     );
   }
-}
 
-class _NavigationItem extends StatelessWidget {
-  const _NavigationItem({required this.icon, this.selected = false});
+  Color wateringStatusColor(CollectionPlant item) {
+    if (item.daysUntilWatering <= 0) {
+      return warmBrown;
+    }
+    return plantGreen;
+  }
 
-  final IconData icon;
-  final bool selected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Icon(
-      icon,
-      size: 28,
-      color: selected ? CollectionPage.green : const Color(0xff758078),
+  Widget emptyCollection() {
+    // Center menengahkan isi; scroll tetap tersedia jika layarnya pendek.
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SvgPicture.asset(
+              'assets/illustration/empty_collection_plant.svg',
+              width: 180,
+              height: 180,
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'No plants in your collection',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: 280,
+              child: PrimaryButton(
+                label: 'Browse plant dictionary',
+                icon: Icons.eco_outlined,
+                onPressed: onBrowse,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

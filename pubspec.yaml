@@ -9,7 +9,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_svg: ^2.3.0
-  google_fonts: ^8.2.1
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:
@@ -20,9 +20,18 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: PlusJakartaSans
+      fonts:
+        - asset: assets/fonts/PlusJakartaSans-Regular.ttf
+        - asset: assets/fonts/PlusJakartaSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/PlusJakartaSans-Bold.ttf
+          weight: 700
   assets:
     - assets/branding/mygrovia_logo.png
     - assets/illustration/empty_collection_plant.svg
+    - assets/plants/
 
 flutter_launcher_icons:
   android: true
