@@ -6,7 +6,9 @@ untuk presentasi PAPB, bukan mengubah desain atau mengganti sumber data lagi.
 ## Keputusan yang berlaku sekarang
 
 - Flutter/Dart mengambil dataset Plantfolio dari GitHub melalui satu HTTP GET HTTPS.
-- Tidak memakai backend sendiri, SQLite server, Wikipedia, atau tombol Read more.
+- Tidak memakai backend sendiri atau SQLite server.
+- Read more kembali memakai REST API Wikipedia untuk ringkasan tambahan. Ini
+  integrasi REST API yang didemokan; Plantfolio tetap dataset JSON statis.
 - Backend Python/SQLite sudah dihapus atas permintaan pengguna karena tidak dipakai.
 - Tidak perlu Python, adb reverse, API_BASE_URL, API key, atau hosting sendiri.
 - Aplikasi membutuhkan internet saat memuat katalog. Belum ada cache permanen.
@@ -86,6 +88,13 @@ Plant data source dan third_party/plantfolio/. Jangan menghapus atribusi itu.
 7. DictionaryPage menerima katalog; pencarian/filter lokal atas hasil yang sudah diterima.
 8. Detail menerima objek Plant yang dipilih, tanpa request tambahan.
 
+Jika Read more ditekan: showPlantInformation() membuka PlantInformationDialog.
+initState dialog menjalankan loadDescription() → ApiService.getPlantDescription().
+Fungsi ini GET https://en.wikipedia.org/api/rest_v1/page/summary/{nama_ilmiah},
+memeriksa status dan type standard, lalu mengembalikan extract. Ringkasan Wikipedia
+ditampilkan terpisah, bukan mengganti deskripsi katalog. Ada loading, Try again,
+pengecekan mounted, dan tombol Source: Wikipedia untuk atribusi.
+
 Loading berupa tulisan. Error/timeout menampilkan pesan dan Try again, bukan
 katalog fallback palsu. Pindah tab tidak mengirim request ulang selama HomePage hidup.
 Tidak ada singleton, provider, BLoC, atau sistem cache tambahan.
@@ -96,6 +105,13 @@ New Request → GET → paste URL HTTPS di atas → Send. Body kosong, tanpa Aut
 Header Accept: application/json opsional. Respons sukses 200 berisi array; cari
 calathea-orbifolia untuk memperlihatkan salah satu tanaman. Tidak perlu impor
 collection Postman; versi JSON collection yang tersedia hanya artefak opsional.
+
+Untuk demo REST API, gunakan GET berikut di Thunder Client:
+https://en.wikipedia.org/api/rest_v1/page/summary/Monstera_deliciosa
+Body kosong dan No Auth. Headers: Accept: application/json dan
+Api-User-Agent: myGroviaStudentProject/0.1 (educational plant app).
+Respons 200 berupa objek JSON; field extract ditampilkan oleh Read more.
+Uji langsung lewat Dart: dart run tool/check_wikipedia_api.dart.
 
 ## Pemeriksaan dan troubleshooting
 
@@ -110,10 +126,14 @@ Perintah Dart terakhir benar-benar menghubungi dataset online. Jika aplikasi gag
 cek koneksi HP, akses domain raw.githubusercontent.com, dan Try again. Jangan
 menghidupkan backend Python atau mengatur 10.0.2.2 lagi: itu versi yang sudah dibuang.
 
-Verifikasi terakhir di laptop asal: 15 tes Flutter berhasil, analyzer bersih,
+Verifikasi katalog sebelumnya di laptop asal: 15 tes Flutter berhasil, analyzer bersih,
 skrip Dart menerima empat tanaman dari Plantfolio, dan APK release berhasil
 dibangun serta dipasang di HP. Keempat tanaman terlihat pada APK release tanpa
 penerusan port tcp:8000. Tetap periksa akses internet di perangkat presentasi.
+
+Setelah Read more ditambahkan kembali: 18 tes Flutter berhasil dan ringkasan
+Wikipedia keempat tanaman berhasil diambil melalui kode Dart. APK release telah
+dibangun ulang; instal ulang APK terbaru untuk melihat tombol tersebut.
 
 ## Preferensi pengguna
 
@@ -137,7 +157,7 @@ Jangan ikut mengubah penghapusan mailmap.txt atau pengaturan workspace Postman
 yang tidak terkait tanpa memeriksa maksudnya.
 
 docs/API_MINGGU_INI.md menjelaskan implementasi aktif. Panduan belajar panjang
-memiliki bab historis; contoh Wikipedia, plantDictionary, dan backend dari versi
+memiliki bab historis; contoh lokasi file Wikipedia, plantDictionary, dan backend dari versi
 lama tidak berlaku sebagai alur aktif. Selalu periksa kode terkini.
 
 ## Kalimat presentasi
@@ -147,3 +167,6 @@ Respons JSON saya ubah menjadi List<Plant> dan pilih empat tanaman untuk katalog
 Deskripsi dan informasi perawatan berasal dari sumber online, sedangkan foto
 dan label katalog masih dari aplikasi. Data yang sama digunakan di detail.
 Ada loading dan tombol coba lagi jika koneksi gagal.”
+
+“Untuk integrasi REST API, tombol Read more mengambil ringkasan dari API Wikipedia
+berdasarkan nama ilmiah tanaman. Field extract ditampilkan dalam dialog.”

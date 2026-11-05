@@ -9,11 +9,36 @@
       "name": "Get plants",
       "request": {
         "method": "GET",
-        "auth": { "type": "noauth" },
+        "auth": {
+          "type": "noauth"
+        },
         "header": [
-          { "key": "Accept", "value": "application/json" }
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
         ],
         "url": "https://raw.githubusercontent.com/Luminoid/plantfolio-common-plants/bbb364534cfbca28168085897ac9f2ff00a151a5/dist/common_plants.json"
+      }
+    },
+    {
+      "name": "Wikipedia summary",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "noauth"
+        },
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Api-User-Agent",
+            "value": "myGroviaStudentProject/0.1 (educational plant app)"
+          }
+        ],
+        "url": "https://en.wikipedia.org/api/rest_v1/page/summary/Monstera_deliciosa"
       }
     }
   ]

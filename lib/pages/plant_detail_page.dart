@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../model/plant.dart';
 import '../widgets/plant_widgets.dart';
+import '../widgets/plant_information_dialog.dart';
 import '../widgets/room_selection_sheet.dart';
 
 class PlantDetailPage extends StatefulWidget {
@@ -42,6 +43,17 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
         saved = true;
       }
     });
+  }
+
+  void showPlantInformation() {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return PlantInformationDialog(
+          botanicalName: widget.plant.botanicalName,
+        );
+      },
+    );
   }
 
   Future<void> addToCollection() async {
@@ -123,6 +135,14 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
                           height: 1.6,
                           fontSize: 16,
                         ),
+                      ),
+                      TextButton(
+                        onPressed: showPlantInformation,
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          alignment: Alignment.centerLeft,
+                        ),
+                        child: const Text('Read more'),
                       ),
                       const SizedBox(height: 24),
                       Container(

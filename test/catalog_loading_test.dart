@@ -24,7 +24,7 @@ void main() {
         await tester.tap(find.text('Monstera Deliciosa'));
         await tester.pumpAndSettle();
         expect(find.textContaining('Mexican breadfruit'), findsOneWidget);
-        expect(find.text('Read more'), findsNothing);
+        expect(find.text('Read more'), findsOneWidget);
         await tester.tap(find.byTooltip('Back'));
         await tester.pumpAndSettle();
         await tester.tap(find.byTooltip('My collection'));

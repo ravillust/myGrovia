@@ -5,6 +5,43 @@ import 'package:http/http.dart' as http;
 import '../model/plant.dart';
 
 class ApiService {
+  Future<String> getPlantDescription(String botanicalName) async {
+    final String articleTitle = botanicalName.trim().replaceAll(' ', '_');
+    final Uri url = Uri.https(
+      'en.wikipedia.org',
+      '/api/rest_v1/page/summary/$articleTitle',
+    );
+    final http.Client client = http.Client();
+    try {
+      final http.Response response = await client
+          .get(
+            url,
+            headers: {
+              'Accept': 'application/json',
+              'Api-User-Agent':
+                  'myGroviaStudentProject/0.1 (educational plant app)',
+            },
+          )
+          .timeout(const Duration(seconds: 12));
+      if (response.statusCode != 200) {
+        throw Exception(
+          'Could not load Wikipedia article: ${response.statusCode}',
+        );
+      }
+      final dynamic data = jsonDecode(utf8.decode(response.bodyBytes));
+      if (data is! Map<String, dynamic> || data['type'] != 'standard') {
+        throw const FormatException('The response is not a plant article.');
+      }
+      final dynamic description = data['extract'];
+      if (description is! String || description.trim().isEmpty) {
+        throw const FormatException('The article has no description.');
+      }
+      return description.trim();
+    } finally {
+      client.close();
+    }
+  }
+
   // Versi dataset dikunci agar hasil demo tidak berubah saat sumber diperbarui.
   static const String catalogUrl =
       'https://raw.githubusercontent.com/Luminoid/plantfolio-common-plants/'

@@ -1,6 +1,6 @@
 # Belajar myGrovia — kode yang disederhanakan
 
-Pembaruan 5 November 2026: katalog sekarang mengambil dataset Plantfolio langsung dari GitHub melalui HTTPS. Backend Python/SQLite serta Wikipedia sudah dihapus. Tidak perlu server laptop atau adb reverse; cukup flutter run dengan internet. Deskripsi/perawatan dari Plantfolio, foto dan label katalog dari aplikasi; koleksi masih demo di RAM. Lihat API_MINGGU_INI.md dan ../CATATAN_UNTUK_GPT.md untuk alur terbaru. Bab berikut adalah materi historis versi 21 Oktober; contoh plantDictionary dan createSampleCollection tanpa parameter tidak lagi sama dengan kode terbaru.
+Pembaruan 5 November 2026: katalog sekarang mengambil dataset Plantfolio langsung dari GitHub melalui HTTPS. Backend Python/SQLite sudah dihapus. Read more kembali memakai REST API Wikipedia untuk ringkasan tambahan, terpisah dari katalog JSON statis Plantfolio. Tidak perlu server laptop atau adb reverse; cukup flutter run dengan internet. Deskripsi/perawatan dari Plantfolio, foto dan label katalog dari aplikasi; koleksi masih demo di RAM. Lihat API_MINGGU_INI.md dan ../CATATAN_UNTUK_GPT.md untuk alur terbaru. Bab berikut adalah materi historis versi 21 Oktober; contoh plantDictionary dan createSampleCollection tanpa parameter tidak lagi sama dengan kode terbaru.
 
 Versi dasar 21 Oktober 2026. Panduan 19 Oktober menjelaskan versi lama yang masih memakai Sliver, IndexedStack, dan key untuk mereset pencarian.
 

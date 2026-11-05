@@ -4,6 +4,9 @@ Proyek Flutter PAPB: katalog tanaman, koleksi demo, dan pencatatan penyiraman.
 Katalog mengambil dataset Plantfolio melalui HTTPS. Foto tersedia dalam assets.
 Tidak membutuhkan backend lokal atau API key. Perangkat membutuhkan internet.
 
+Tombol Read more memakai REST API Wikipedia untuk ringkasan tambahan. Katalog
+Plantfolio adalah sumber JSON statis; keduanya tidak disamakan saat presentasi.
+
 ```powershell
 flutter pub get
 flutter run

@@ -1,5 +1,29 @@
 # Pengambilan katalog Plantfolio — implementasi aktif
 
+## REST API untuk presentasi: Read more Wikipedia
+
+Selain katalog JSON statis di bawah, aplikasi kini juga memanggil REST API:
+
+```text
+GET https://en.wikipedia.org/api/rest_v1/page/summary/Monstera_deliciosa
+```
+
+Di Thunder Client pilih GET, Body kosong, No Auth, header Accept: application/json
+dan Api-User-Agent: myGroviaStudentProject/0.1 (educational plant app). Status 200
+berarti sukses. Field extract adalah ringkasan yang ditampilkan.
+
+Alur: Read more di PlantDetailPage → showPlantInformation → PlantInformationDialog
+→ initState → loadDescription → ApiService.getPlantDescription → client.get().
+Nama ilmiah menentukan artikel. Request hanya dibuat saat dialog dibuka/retry,
+bukan saat build atau membuka detail. Kesalahan ditampilkan dengan Try again;
+respons terlambat tidak memperbarui dialog yang sudah ditutup. Sumber dan lisensi
+Wikipedia bisa dibuka melalui Source: Wikipedia, tanpa tombol salin.
+
+Perintah uji nyata: dart run tool/check_wikipedia_api.dart.
+
+Penjelasan dosen: “Katalog mengambil dataset JSON statis Plantfolio. Integrasi
+REST API berada di Read more yang mengambil extract dari API Wikipedia.”
+
 Flutter mengambil satu dataset JSON melalui HTTPS, bukan server laptop:
 
 ```text
@@ -69,4 +93,4 @@ My space → Plant data source. Cuplikan dataset dan data adaptasinya mengikuti
 lisensi yang sama. Foto aplikasi terpisah dari dataset ini.
 
 URL menggunakan commit tertentu agar struktur/nilai tidak berubah saat presentasi.
-Backend Python/SQLite dan integrasi Wikipedia sudah dihapus karena tidak dipakai.
+Backend Python/SQLite sudah dihapus. Wikipedia dipakai kembali hanya untuk Read more.
