@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 import '../model/plant.dart';
+import '../services/database_helper.dart';
 import '../widgets/plant_widgets.dart';
+import '../widgets/watering_dialog.dart';
+import 'edit_plant_page.dart';
 
 class CollectionDetailPage extends StatefulWidget {
   final CollectionPlant item;
@@ -21,33 +25,79 @@ class CollectionDetailPage extends StatefulWidget {
 
 class _CollectionDetailPageState extends State<CollectionDetailPage> {
   bool showAll = false;
-  Future<void> waterPlant() async {
-    final entry = await showDialog<WateringEntry>(
-      context: context,
-      builder: (context) {
-        return const WateringDialog();
-      },
+  bool busy = false;
+  bool choosingWater = false;
+  String? actionId;
+  WateringEntry? pendingEntry;
+
+  Future<void> editPlant() async {
+    if (busy) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => EditPlantPage(item: widget.item)),
     );
+    if (mounted) {
+      setState(() {});
+      widget.onChanged();
+    }
+  }
+
+  void showError() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Unable to save. Check device storage and try again.'),
+      ),
+    );
+  }
+
+  Future<void> waterPlant() async {
+    if (busy || choosingWater) return;
+    choosingWater = true;
+    final entry =
+        pendingEntry ??
+        await showDialog<WateringEntry>(
+          context: context,
+          builder: (context) {
+            return const WateringDialog();
+          },
+        );
+    choosingWater = false;
     if (entry == null || !mounted) {
       return;
     }
-    // Riwayat terbaru harus berada di posisi pertama untuk menghitung jadwal.
-    setState(() {
-      widget.item.history.insert(0, entry);
-    });
-    widget.onChanged();
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Watering recorded')));
+    pendingEntry = entry;
+    actionId ??= const Uuid().v4();
+    setState(() => busy = true);
+    try {
+      final saved = await DatabaseHelper.instance.water(
+        widget.item.id!,
+        actionId!,
+        entry,
+      );
+      widget.item.history.insert(0, saved);
+      actionId = null;
+      pendingEntry = null;
+      widget.onChanged();
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Watering recorded')));
+      }
+    } catch (_) {
+      if (mounted) showError();
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
   }
 
   Future<void> removePlant() async {
+    if (busy) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Remove this plant?'),
           content: const Text(
-            'Its watering history will also be removed from this demo collection.',
+            'Its watering history will also be removed permanently.',
           ),
           actions: [
             TextButton(
@@ -69,8 +119,16 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
     if (confirmed != true || !mounted) {
       return;
     }
-    widget.onDelete();
-    Navigator.pop(context);
+    setState(() => busy = true);
+    try {
+      await DatabaseHelper.instance.deletePlant(widget.item.id!);
+      widget.onDelete();
+      if (mounted) Navigator.pop(context);
+    } catch (_) {
+      if (mounted) showError();
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
   }
 
   @override
@@ -84,8 +142,13 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
       }
     }
     String wateringLabel = 'Due today';
-    if (days > 0) {
-      wateringLabel = 'In $days days';
+    if (item.history.isEmpty) {
+      wateringLabel = 'Not watered yet';
+    } else if (days < 0) {
+      final overdue = -days;
+      wateringLabel = 'Overdue by $overdue ${overdue == 1 ? 'day' : 'days'}';
+    } else if (days > 0) {
+      wateringLabel = days == 1 ? 'Tomorrow' : 'In $days days';
     }
     String historyButtonLabel = 'View all';
     if (showAll) {
@@ -114,25 +177,33 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                         style: const TextStyle(color: mutedText, fontSize: 12),
                       ),
                       const SizedBox(height: 28),
-                      const Text(
-                        'Next watering',
-                        style: TextStyle(color: mutedText, fontSize: 11),
+                      Text(
+                        item.history.isEmpty
+                            ? 'Watering status'
+                            : 'Next watering',
+                        style: const TextStyle(color: mutedText, fontSize: 12),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         wateringLabel,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Check the soil before watering.',
-                        style: TextStyle(color: mutedText, height: 1.5),
-                      ),
+                      if (item.nextWatering != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          '${formatDate(item.nextWatering!, relative: false)} ${item.nextWatering!.year}',
+                          style: const TextStyle(color: mutedText, height: 1.5),
+                        ),
+                      ],
                       const SizedBox(height: 20),
                       PrimaryButton(
-                        label: 'Record watering',
+                        label: busy
+                            ? 'Saving...'
+                            : pendingEntry != null
+                            ? 'Retry saving'
+                            : 'Record watering',
                         icon: Icons.water_drop_outlined,
-                        onPressed: waterPlant,
+                        onPressed: busy ? null : waterPlant,
                       ),
                       const SizedBox(height: 28),
                       Row(
@@ -148,11 +219,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                             TextButton(
                               onPressed: () {
                                 setState(() {
-                                  if (showAll) {
-                                    showAll = false;
-                                  } else {
-                                    showAll = true;
-                                  }
+                                  showAll = !showAll;
                                 });
                               },
                               child: Text(historyButtonLabel),
@@ -273,12 +340,40 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                     child: PopupMenuButton<String>(
                       tooltip: 'Plant options',
                       onSelected: (String choice) {
+                        if (choice == 'edit') editPlant();
+                        if (choice == 'photo-source') {
+                          showDialog<void>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              scrollable: true,
+                              title: const Text('Photo source'),
+                              content: SelectableText(
+                                item.plant.photoReference,
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Close'),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
                         if (choice == 'remove') {
                           removePlant();
                         }
                       },
                       itemBuilder: (context) {
                         return [
+                          if (item.plant.photoReference.isNotEmpty)
+                            const PopupMenuItem(
+                              value: 'photo-source',
+                              child: Text('Photo source'),
+                            ),
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Text('Edit plant'),
+                          ),
                           const PopupMenuItem(
                             value: 'remove',
                             child: Text('Remove plant'),
@@ -296,16 +391,16 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
     );
   }
 
-  String formatDate(DateTime date) {
+  String formatDate(DateTime date, {bool relative = true}) {
     final DateTime now = DateTime.now();
     // Bandingkan tanggal saja agar jam penyiraman tidak mengubah label harinya.
     final DateTime today = DateTime(now.year, now.month, now.day);
     final DateTime wateringDate = DateTime(date.year, date.month, date.day);
     final int daysAgo = today.difference(wateringDate).inDays;
-    if (daysAgo == 0) {
+    if (relative && daysAgo == 0) {
       return 'Today';
     }
-    if (daysAgo == 1) {
+    if (relative && daysAgo == 1) {
       return 'Yesterday';
     }
     const List<String> months = [
@@ -323,142 +418,5 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
       'Dec',
     ];
     return '${date.day} ${months[date.month - 1]}';
-  }
-}
-
-class WateringDialog extends StatefulWidget {
-  const WateringDialog({super.key});
-  @override
-  State<WateringDialog> createState() {
-    return _WateringDialogState();
-  }
-}
-
-class _WateringDialogState extends State<WateringDialog> {
-  String? amountError;
-  final TextEditingController amountController = TextEditingController(
-    text: '300',
-  );
-  final TextEditingController noteController = TextEditingController();
-  @override
-  void dispose() {
-    amountController.dispose();
-    noteController.dispose();
-    super.dispose();
-  }
-
-  void saveWatering() {
-    final int? amount = int.tryParse(amountController.text.trim());
-    if (amount == null || amount <= 0) {
-      setState(() {
-        amountError = 'Enter a positive whole number';
-      });
-      return;
-    }
-
-    String note = noteController.text.trim();
-    if (note.isEmpty) {
-      note = 'Regular watering';
-    }
-    final WateringEntry entry = WateringEntry(DateTime.now(), note, amount);
-    // Tutup form dan kirim catatan; halaman detail yang memasukkannya ke riwayat.
-    Navigator.pop(context, entry);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      scrollable: true,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-      contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
-      actionsPadding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-      title: const Text('Record watering'),
-      titleTextStyle: Theme.of(context).textTheme.titleLarge
-          ?.copyWith(fontSize: 21),
-      content: SizedBox(
-        width: 340,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Water amount',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: amountController,
-              keyboardType: TextInputType.number,
-              textInputAction: TextInputAction.next,
-              decoration: InputDecoration(
-                errorText: amountError,
-                hintText: '300',
-                suffixText: 'ml',
-                errorMaxLines: 2,
-              ),
-              onChanged: (String text) {
-                if (amountError != null) {
-                  setState(() {
-                    amountError = null;
-                  });
-                }
-              },
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Note (optional)',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: noteController,
-              decoration: const InputDecoration(
-                hintText: 'e.g. Top layer of soil was dry',
-                hintStyle: TextStyle(color: mutedText, fontSize: 13),
-              ),
-              minLines: 3,
-              maxLines: 4,
-              textCapitalization: TextCapitalization.sentences,
-              maxLength: 100,
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(0, 48),
-                  side: const BorderSide(color: Color(0xffd4d7d2)),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('Cancel'),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: FilledButton(
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(0, 48),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                onPressed: saveWatering,
-                child: const Text('Save'),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
   }
 }

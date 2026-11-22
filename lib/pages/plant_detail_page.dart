@@ -4,13 +4,14 @@ import '../model/plant.dart';
 import '../widgets/plant_widgets.dart';
 import '../widgets/plant_information_dialog.dart';
 import '../widgets/room_selection_sheet.dart';
+import '../widgets/watering_interval_dialog.dart';
 
 class PlantDetailPage extends StatefulWidget {
   final Plant plant;
   final bool isSaved;
   final bool isAdded;
   final VoidCallback onBookmark;
-  final ValueChanged<String> onAdd;
+  final Future<void> Function(String, int) onAdd;
   const PlantDetailPage({
     super.key,
     required this.plant,
@@ -27,6 +28,7 @@ class PlantDetailPage extends StatefulWidget {
 
 class _PlantDetailPageState extends State<PlantDetailPage> {
   bool saved = false;
+  bool adding = false;
 
   @override
   void initState() {
@@ -37,11 +39,7 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
   void changeBookmark() {
     widget.onBookmark();
     setState(() {
-      if (saved) {
-        saved = false;
-      } else {
-        saved = true;
-      }
+      saved = !saved;
     });
   }
 
@@ -49,14 +47,22 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
     showDialog<void>(
       context: context,
       builder: (context) {
-        return PlantInformationDialog(
-          botanicalName: widget.plant.botanicalName,
-        );
+        return PlantInformationDialog(plant: widget.plant);
       },
     );
   }
 
   Future<void> addToCollection() async {
+    if (adding) return;
+    int days = widget.plant.wateringDays;
+    if (!widget.plant.wateringKnown) {
+      final selected = await showDialog<int>(
+        context: context,
+        builder: (_) => const WateringIntervalDialog(),
+      );
+      if (selected == null || !mounted) return;
+      days = selected;
+    }
     final room = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
@@ -74,8 +80,23 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
     if (room == null || !mounted) {
       return;
     }
-    widget.onAdd(room);
-    Navigator.pop(context);
+    setState(() => adding = true);
+    try {
+      await widget.onAdd(room, days);
+      if (mounted) Navigator.pop(context);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Unable to add this plant. Try again or restart the app.',
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => adding = false);
+    }
   }
 
   @override
@@ -90,7 +111,8 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
 
     String addButtonLabel = 'Add to Collection';
     IconData addButtonIcon = Icons.add;
-    VoidCallback? addButtonAction = addToCollection;
+    VoidCallback? addButtonAction = adding ? null : addToCollection;
+    if (adding) addButtonLabel = 'Saving...';
     if (widget.isAdded) {
       addButtonLabel = 'Already in Collection';
       addButtonIcon = Icons.check;
@@ -117,16 +139,18 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
                               height: 1.3,
                             ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        plant.botanicalName,
-                        style: const TextStyle(
-                          color: mutedText,
-                          fontStyle: FontStyle.italic,
-                          fontSize: 14,
-                          height: 1.5,
+                      if (plant.botanicalName.trim().isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          plant.botanicalName,
+                          style: const TextStyle(
+                            color: mutedText,
+                            fontStyle: FontStyle.italic,
+                            fontSize: 14,
+                            height: 1.5,
+                          ),
                         ),
-                      ),
+                      ],
                       const SizedBox(height: 20),
                       Text(
                         plant.description,
@@ -163,7 +187,9 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
                             careInfo(
                               Icons.water_drop_outlined,
                               'Water',
-                              'About every ${plant.wateringDays} days',
+                              plant.wateringKnown
+                                  ? 'About every ${plant.wateringDays} days'
+                                  : 'Set an interval when adding this plant',
                             ),
                             const SizedBox(height: 20),
                             careInfo(

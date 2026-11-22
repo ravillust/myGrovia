@@ -1,6 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../model/plant.dart';
+
+import '../services/database_helper.dart';
 
 const plantGreen = Color(0xff2f7255);
 const mutedText = Color(0xff626c65);
@@ -14,6 +19,34 @@ class PlantPhoto extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String? imagePath = plant.image;
+    if (imagePath != null && imagePath.startsWith('local:')) {
+      return FutureBuilder<Uint8List>(
+        future: DatabaseHelper.instance.photo(imagePath.substring(6)),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return SizedBox(
+              height: height,
+              child: Center(
+                child: Text(
+                  snapshot.hasError ? 'Photo unavailable' : 'Loading photo...',
+                ),
+              ),
+            );
+          }
+          return Image.memory(
+            snapshot.data!,
+            height: height,
+            width: double.infinity,
+            fit: BoxFit.cover,
+            semanticLabel: plant.name,
+            errorBuilder: (_, error, stack) => SizedBox(
+              height: height,
+              child: const Center(child: Text('Unable to open photo')),
+            ),
+          );
+        },
+      );
+    }
     if (imagePath != null) {
       return Image.asset(
         imagePath,
@@ -22,21 +55,32 @@ class PlantPhoto extends StatelessWidget {
         fit: BoxFit.cover,
         alignment: const Alignment(0, 0.35),
         semanticLabel: plant.name,
+        errorBuilder: (_, error, stack) => SizedBox(
+          height: height,
+          child: const Center(
+            child: Icon(Icons.eco_outlined, size: 48, color: plantGreen),
+          ),
+        ),
       );
     }
     return Container(
       height: height,
       color: neutralSurface,
-      child: const Center(
+      child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.eco_outlined, size: 48, color: plantGreen),
-            SizedBox(height: 8),
-            Text(
-              'Photo coming soon',
-              style: TextStyle(color: mutedText, fontSize: 12),
+            SvgPicture.asset(
+              'assets/illustration/empty_collection_plant.svg',
+              width: 70,
+              height: 70,
             ),
+            if ((height ?? 200) >= 150) const SizedBox(height: 8),
+            if ((height ?? 200) >= 150)
+              const Text(
+                'Photo not available',
+                style: TextStyle(color: mutedText, fontSize: 12),
+              ),
           ],
         ),
       ),

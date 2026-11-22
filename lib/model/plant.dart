@@ -1,95 +1,73 @@
 class Plant {
+  final String? id;
+  final String fullDescription;
+  final String reference;
+  final String photoReference;
   final String name;
   final String botanicalName;
   final String? image;
-  final String difficulty;
   final String light;
   final int wateringDays;
+  final bool wateringKnown;
   final String temperature;
   final String description;
   final String tip;
-  final bool lowLight;
 
   const Plant({
+    this.id,
+    this.fullDescription = '',
+    this.reference = '',
+    this.photoReference = '',
     required this.name,
     required this.botanicalName,
     this.image,
-    this.difficulty = 'Easy',
     required this.light,
     required this.wateringDays,
+    this.wateringKnown = true,
     required this.temperature,
     required this.description,
     required this.tip,
-    this.lowLight = false,
   });
 
-  // Deskripsi dan perawatan dari Plantfolio; foto dan label katalog dari aplikasi.
-  factory Plant.fromJson(Map<String, dynamic> json) {
-    final String id = json['id'] as String;
-    String name;
-    String botanicalName;
-    String image;
-    String difficulty = 'Easy';
-    bool lowLight = false;
+  Plant withWateringDays(int days) => Plant(
+    id: id,
+    name: name,
+    botanicalName: botanicalName,
+    image: image,
+    light: light,
+    wateringDays: days,
+    temperature: temperature,
+    description: description,
+    tip: tip,
+    fullDescription: fullDescription,
+    reference: reference,
+    photoReference: photoReference,
+  );
 
-    if (id == 'swiss-cheese-plant') {
-      name = 'Monstera Deliciosa';
-      botanicalName = 'Monstera deliciosa';
-      image = 'assets/plants/monstera_photo.jpg';
-    } else if (id == 'calathea-orbifolia') {
-      name = 'Calathea Orbifolia';
-      botanicalName = 'Goeppertia orbifolia';
-      image = 'assets/plants/calathea_photo.jpg';
-      difficulty = 'Moderate';
-    } else if (id == 'snake-plants') {
-      name = 'Snake Plant';
-      botanicalName = 'Dracaena trifasciata';
-      image = 'assets/plants/snake_plant_photo.jpg';
-      lowLight = true;
-    } else if (id == 'golden-pothos') {
-      name = 'Golden Pothos';
-      botanicalName = 'Epipremnum aureum';
-      image = 'assets/plants/golden_pothos.jpg';
-      lowLight = true;
-    } else {
-      throw FormatException('Unsupported plant: $id');
-    }
+  factory Plant.fromJson(Map<String, dynamic> row) => Plant(
+    id: row['catalog_id'] ?? (row.containsKey('room') ? null : row['id']),
+    name: row['name'],
+    botanicalName: row['botanical_name'] ?? '',
+    image: row['image'],
+    wateringDays: row['watering_days'] ?? 7,
+    wateringKnown: row['watering_days'] is int,
+    light: lightLabel(row['light'] as String?),
+    temperature: row['temperature'] ?? 'Not available',
+    description: row['summary'] ?? '',
+    fullDescription: row['description'] ?? '',
+    reference: row['reference'] ?? '',
+    photoReference: row['photo_reference'] ?? '',
+    tip: row['tip'] ?? '',
+  );
 
-    final String lightPreference = json['lightPreference'] as String;
-    String light;
-    if (lightPreference == 'brightIndirect') {
-      light = 'Bright indirect';
-    } else if (lightPreference == 'mediumIndirect') {
-      light = 'Medium indirect';
-    } else if (lightPreference == 'lowIndirect') {
-      light = 'Low indirect';
-    } else {
-      throw FormatException('Unsupported light preference: $lightPreference');
-    }
-
-    // Perkiraan awal dari summerInterval, bukan jadwal pasti untuk semua kondisi.
-    final int wateringDays = json['summerInterval'] as int;
-    final List<dynamic> temperatures = json['temperaturePreference'] as List;
-    if (wateringDays <= 0 ||
-        temperatures.length != 2 ||
-        temperatures[0] is! num ||
-        temperatures[1] is! num ||
-        temperatures[0] > temperatures[1]) {
-      throw const FormatException('Invalid care information.');
-    }
-
-    return Plant(
-      name: name,
-      botanicalName: botanicalName,
-      image: image,
-      difficulty: difficulty,
-      light: light,
-      wateringDays: wateringDays,
-      temperature: '${temperatures[0]}–${temperatures[1]}°C',
-      description: json['description'] as String,
-      tip: json['careTips'] as String,
-      lowLight: lowLight,
-    );
+  static String lightLabel(String? value) {
+    const labels = {
+      'outdoorFullSun': 'Full sun (outdoors)',
+      'outdoorPartialSun': 'Partial sun (outdoors)',
+      'outdoorShade': 'Shade (outdoors)',
+      'strongDirect': 'Strong direct light',
+    };
+    return labels[value] ?? value ?? 'Not available';
   }
 }
 
@@ -98,37 +76,71 @@ class WateringEntry {
   final String note;
   final int milliliters;
   WateringEntry(this.date, this.note, this.milliliters);
+
+  factory WateringEntry.fromJson(Map<String, dynamic> row) => WateringEntry(
+    DateTime.parse(row['watered_at']).toLocal(),
+    row['note'],
+    row['milliliters'],
+  );
 }
 
 class CollectionPlant {
-  final Plant plant;
-  final String room;
+  final String? id;
+  Plant plant;
+  String room;
   final DateTime added;
   final List<WateringEntry> history;
   CollectionPlant({
+    this.id,
     required this.plant,
     required this.room,
     required this.added,
     required this.history,
   });
 
+  factory CollectionPlant.fromJson(Map<String, dynamic> row) => CollectionPlant(
+    id: row['id'],
+    plant: Plant.fromJson(row),
+    room: row['room'],
+    added: DateTime.parse(row['added']).toLocal(),
+    history: [
+      for (final entry in row['watering'] as List)
+        WateringEntry.fromJson(entry),
+    ],
+  );
+
   int get daysUntilWatering {
     if (history.isEmpty) {
       return 0;
     }
-    final DateTime lastWateringDate = history.first.date;
-    final int daysSinceWatering = DateTime.now()
-        .difference(lastWateringDate)
-        .inDays;
-    final int remainingDays = plant.wateringDays - daysSinceWatering;
-    return remainingDays;
+    final now = DateTime.now();
+    final due = nextWatering!;
+    return DateTime.utc(
+      due.year,
+      due.month,
+      due.day,
+    ).difference(DateTime.utc(now.year, now.month, now.day)).inDays;
+  }
+
+  DateTime? get nextWatering {
+    if (history.isEmpty) return null;
+    final last = history.first.date.toLocal();
+    return DateTime(last.year, last.month, last.day + plant.wateringDays);
   }
 
   String get status {
-    if (history.isEmpty || daysUntilWatering <= 0) {
-      return 'Due today';
+    if (history.isEmpty) return 'Not watered yet';
+    if (daysUntilWatering < 0) {
+      return 'Overdue by ${-daysUntilWatering} ${daysUntilWatering == -1 ? 'day' : 'days'}';
     }
-    final int days = DateTime.now().difference(history.first.date).inDays;
+    if (daysUntilWatering == 0) return 'Due today';
+    final now = DateTime.now();
+    final last = history.first.date.toLocal();
+    final int days = DateTime.utc(
+      now.year,
+      now.month,
+      now.day,
+    ).difference(DateTime.utc(last.year, last.month, last.day)).inDays;
     if (days == 0) {
       return 'Watered today';
     }
@@ -137,41 +149,4 @@ class CollectionPlant {
     }
     return 'Watered $days days ago';
   }
-}
-
-List<CollectionPlant> createSampleCollection(List<Plant> catalog) {
-  // Data awal untuk presentasi UI; belum dibaca dari penyimpanan permanen.
-  final DateTime now = DateTime.now();
-  final List<CollectionPlant> collection = [];
-  final List<String> rooms = ['Living room', 'Bedroom', 'Home office'];
-  final List<int> daysSinceWatering = [1, 5, 6];
-
-  for (int index = 0; index < 3 && index < catalog.length; index++) {
-    final List<WateringEntry> history = [
-      WateringEntry(
-        now.subtract(Duration(days: daysSinceWatering[index])),
-        'Soil checked before watering',
-        320,
-      ),
-      WateringEntry(
-        now.subtract(const Duration(days: 15)),
-        'Regular watering',
-        300,
-      ),
-      WateringEntry(
-        now.subtract(const Duration(days: 24)),
-        'Regular watering',
-        300,
-      ),
-    ];
-
-    final CollectionPlant item = CollectionPlant(
-      plant: catalog[index],
-      room: rooms[index],
-      added: now.subtract(const Duration(days: 90)),
-      history: history,
-    );
-    collection.add(item);
-  }
-  return collection;
 }

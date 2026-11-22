@@ -1,97 +1,101 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
 import '../model/plant.dart';
 
+class ApiException implements Exception {
+  final String message;
+  final int? statusCode;
+  const ApiException(this.message, {this.statusCode});
+
+  @override
+  String toString() => message;
+}
+
+class PlantDescription {
+  final String text;
+  final bool fromInternet;
+  const PlantDescription(this.text, {required this.fromInternet});
+}
+
 class ApiService {
-  Future<String> getPlantDescription(String botanicalName) async {
-    final String articleTitle = botanicalName.trim().replaceAll(' ', '_');
-    final Uri url = Uri.https(
-      'en.wikipedia.org',
-      '/api/rest_v1/page/summary/$articleTitle',
-    );
-    final http.Client client = http.Client();
+  static final catalogUrl = Uri.https(
+    'api.github.com',
+    '/repos/Luminoid/plantfolio-common-plants/contents/dist/common_plants.json',
+    {'ref': 'bbb364534cfbca28168085897ac9f2ff00a151a5'},
+  );
+  static const headers = {
+    'Accept': 'application/vnd.github.raw+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+    'User-Agent': 'myGrovia',
+  };
+
+  final http.Client? client;
+  final Duration timeout;
+  ApiService({this.client, this.timeout = const Duration(seconds: 12)});
+
+  Future<PlantDescription> description(Plant plant) async {
+    if (plant.id == null) {
+      return PlantDescription(plant.fullDescription, fromInternet: false);
+    }
     try {
-      final http.Response response = await client
-          .get(
-            url,
-            headers: {
-              'Accept': 'application/json',
-              'Api-User-Agent':
-                  'myGroviaStudentProject/0.1 (educational plant app)',
-            },
-          )
-          .timeout(const Duration(seconds: 12));
-      if (response.statusCode != 200) {
-        throw Exception(
-          'Could not load Wikipedia article: ${response.statusCode}',
-        );
-      }
-      final dynamic data = jsonDecode(utf8.decode(response.bodyBytes));
-      if (data is! Map<String, dynamic> || data['type'] != 'standard') {
-        throw const FormatException('The response is not a plant article.');
-      }
-      final dynamic description = data['extract'];
-      if (description is! String || description.trim().isEmpty) {
-        throw const FormatException('The article has no description.');
-      }
-      return description.trim();
-    } finally {
-      client.close();
+      return PlantDescription(
+        await fetchDescription(plant.id!),
+        fromInternet: true,
+      );
+    } on ApiException {
+      return PlantDescription(plant.fullDescription, fromInternet: false);
+    } on http.ClientException {
+      return PlantDescription(plant.fullDescription, fromInternet: false);
+    } on TimeoutException {
+      return PlantDescription(plant.fullDescription, fromInternet: false);
+    } on FormatException {
+      return PlantDescription(plant.fullDescription, fromInternet: false);
     }
   }
 
-  // Versi dataset dikunci agar hasil demo tidak berubah saat sumber diperbarui.
-  static const String catalogUrl =
-      'https://raw.githubusercontent.com/Luminoid/plantfolio-common-plants/'
-      'bbb364534cfbca28168085897ac9f2ff00a151a5/dist/common_plants.json';
-
-  Future<List<Plant>> getPlants() async {
-    final Uri url = Uri.parse(catalogUrl);
-    final http.Client client = http.Client();
+  Future<String> fetchDescription(String plantId) async {
+    final httpClient = client ?? http.Client();
     try {
-      final http.Response response = await client
-          .get(url, headers: {'Accept': 'application/json'})
-          .timeout(const Duration(seconds: 12));
-
+      // Request internet terjadi saat Read more dibuka; tanpa token atau data pribadi.
+      final response = await httpClient
+          .get(catalogUrl, headers: headers)
+          .timeout(timeout);
       if (response.statusCode != 200) {
-        throw Exception('Could not load plants: ${response.statusCode}');
+        throw ApiException(
+          'Unable to load the online description.',
+          statusCode: response.statusCode,
+        );
       }
-
-      final dynamic data = jsonDecode(utf8.decode(response.bodyBytes));
-      if (data is! List) {
-        throw const FormatException('The response must be a plant list.');
-      }
-      final List<Plant> plants = [];
-      if (data.isEmpty) {
-        return plants;
-      }
-
-      // Ambil empat tanaman yang fotonya tersedia, dalam urutan katalog aplikasi.
-      const List<String> selectedIds = [
-        'swiss-cheese-plant',
-        'calathea-orbifolia',
-        'snake-plants',
-        'golden-pothos',
-      ];
-      for (final String id in selectedIds) {
-        bool found = false;
-        for (final dynamic item in data) {
-          // Baris metadata dan tanaman lain tidak perlu ditampilkan.
-          if (item is Map<String, dynamic> && item['id'] == id) {
-            plants.add(Plant.fromJson(item));
-            found = true;
-            break;
+      final rows = jsonDecode(utf8.decode(response.bodyBytes));
+      if (rows is! List) throw const FormatException('Expected a plant list.');
+      for (final row in rows) {
+        if (row is! Map || row['id'] != plantId) continue;
+        final description = row['description'];
+        if (description is! String || description.trim().isEmpty) {
+          throw const FormatException('Description not available.');
+        }
+        final sections = [description];
+        const labels = {
+          'commonExamples': 'Examples',
+          'origin': 'Origin',
+          'careTips': 'Care guidance',
+        };
+        for (final field in labels.keys) {
+          final value = row[field];
+          if (value == null || value == '') continue;
+          if (value is! String) {
+            throw const FormatException('Invalid description field.');
           }
+          sections.add('${labels[field]}: $value');
         }
-        if (!found) {
-          throw FormatException('Plant not found in dataset: $id');
-        }
+        return sections.join('\n\n');
       }
-      return plants;
+      throw const ApiException('Plant not found in the online catalog.');
     } finally {
-      client.close();
+      if (client == null) httpClient.close();
     }
   }
 }

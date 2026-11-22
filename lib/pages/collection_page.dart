@@ -15,6 +15,7 @@ class CollectionPage extends StatelessWidget {
     required this.onBrowse,
     required this.onChanged,
   });
+
   @override
   Widget build(BuildContext context) {
     Widget collectionContent;

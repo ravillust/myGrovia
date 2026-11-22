@@ -4,6 +4,7 @@ import 'pages/home_page.dart';
 import 'widgets/plant_widgets.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyGroviaApp());
 }
 

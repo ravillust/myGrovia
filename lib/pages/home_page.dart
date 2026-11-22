@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 import '../model/plant.dart';
-import '../services/api_service.dart';
+import '../services/database_helper.dart';
 import '../widgets/plant_widgets.dart';
 import 'collection_page.dart';
 import 'dictionary_page.dart';
-import 'profile_page.dart';
+import 'my_space_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final DatabaseHelper? databaseHelper;
+  const HomePage({super.key, this.databaseHelper});
 
   @override
   State<HomePage> createState() {
@@ -16,9 +18,12 @@ class HomePage extends StatefulWidget {
   }
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   int selectedTab = 0;
-  final ApiService apiService = ApiService();
+  late final DatabaseHelper databaseHelper =
+      widget.databaseHelper ?? DatabaseHelper.instance;
+  final Map<String, String> pendingAdds = {};
+  bool adding = false;
   List<Plant> catalog = [];
   final List<CollectionPlant> plants = [];
   bool isLoading = true;
@@ -29,7 +34,20 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     loadPlants();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && !isLoading) loadPlants();
+    if (state == AppLifecycleState.detached) DatabaseHelper.instance.close();
   }
 
   Future<void> loadPlants() async {
@@ -38,14 +56,17 @@ class _HomePageState extends State<HomePage> {
       loadError = null;
     });
     try {
-      final List<Plant> result = await apiService.getPlants();
+      final List<Plant> result = await databaseHelper.catalog();
+      final collection = await databaseHelper.collection();
       if (!mounted) {
         return;
       }
       setState(() {
         catalog = result;
-        // Koleksi presentasi dibuat dari tanaman yang berhasil diambil dari internet.
-        plants.addAll(createSampleCollection(catalog));
+        // Koleksi dimuat dari SQLite, tidak diisi data contoh.
+        plants
+          ..clear()
+          ..addAll(collection);
         isLoading = false;
       });
     } catch (error) {
@@ -54,8 +75,7 @@ class _HomePageState extends State<HomePage> {
       }
       setState(() {
         isLoading = false;
-        loadError =
-            'Could not load plants. Check your connection and try again.';
+        loadError = 'Unable to load data from this device. Try again or restart the app.';
       });
     }
   }
@@ -77,13 +97,6 @@ class _HomePageState extends State<HomePage> {
     changeTab(1);
   }
 
-  void openSavedPlants() {
-    setState(() {
-      savedPlantsOnly = true;
-      selectedTab = 0;
-    });
-  }
-
   void changeSavedFilter(bool showSavedPlants) {
     setState(() {
       savedPlantsOnly = showSavedPlants;
@@ -101,21 +114,23 @@ class _HomePageState extends State<HomePage> {
   }
 
   void refreshCollection() {
-    // Data sudah diubah di halaman detail; tampilkan hasil terbarunya.
-    setState(() {});
+    // Baca kembali hasil penyimpanan, termasuk saat kembali dari galeri.
+    loadPlants();
   }
 
-  void addPlant(Plant plant, String room) {
-    final CollectionPlant newPlant = CollectionPlant(
-      plant: plant,
-      room: room,
-      added: DateTime.now(),
-      history: [],
-    );
-    setState(() {
-      plants.add(newPlant);
-      selectedTab = 1;
-    });
+  Future<void> addPlant(Plant plant, String room) async {
+    if (adding) return;
+    adding = true;
+    try {
+      final key = '${plant.id ?? plant.name}:$room';
+      final id = pendingAdds.putIfAbsent(key, () => const Uuid().v4());
+      await databaseHelper.savePlant(id, plant, room, create: true);
+      pendingAdds.remove(key);
+      await loadPlants();
+      if (mounted) changeTab(1);
+    } finally {
+      adding = false;
+    }
   }
 
   Widget buildSelectedPage() {
@@ -139,12 +154,7 @@ class _HomePageState extends State<HomePage> {
         onChanged: refreshCollection,
       );
     }
-    return ProfilePage(
-      plants: plants,
-      savedCount: bookmarks.length,
-      onOpenCollection: openCollection,
-      onOpenSavedPlants: openSavedPlants,
-    );
+    return MySpacePage(plants: plants, onOpenCollection: openCollection);
   }
 
   @override
@@ -201,7 +211,7 @@ class _HomePageState extends State<HomePage> {
         ),
       );
     }
-    return buildSelectedPage();
+    return RefreshIndicator(onRefresh: loadPlants, child: buildSelectedPage());
   }
 
   Widget navigationButton(int index, IconData icon, String label) {

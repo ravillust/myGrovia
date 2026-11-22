@@ -1,0 +1,10 @@
+{
+  "source_commit": "bbb364534cfbca28168085897ac9f2ff00a151a5",
+  "category_prefix": "Houseplants - ",
+  "purpose": "Ornamental plants maintained at home in pots, hanging baskets, or as indoor specimens. Source categories are retained; inclusion is not a claim of suitability for every home or climate.",
+  "excluded_ids": {
+    "corpse-flower": "Source describes a massive, rarely flowering specimen; outside the household ornamental focus.",
+    "saguaro": "Source describes a giant desert cactus growing up to 12 metres; outside the household ornamental focus.",
+    "welwitschia": "Source describes an unusual long-lived Namib Desert specimen; outside the household ornamental focus."
+  }
+}

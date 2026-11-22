@@ -8,7 +8,7 @@ class DictionaryPage extends StatefulWidget {
   final List<Plant> catalog;
   final List<CollectionPlant> collection;
   final Set<String> bookmarks;
-  final void Function(Plant, String) onAdd;
+  final Future<void> Function(Plant, String) onAdd;
   final void Function(Plant) onBookmark;
   final bool savedOnly;
   final void Function(bool) onSavedOnlyChanged;
@@ -33,6 +33,12 @@ class DictionaryPage extends StatefulWidget {
 class _DictionaryPageState extends State<DictionaryPage> {
   final TextEditingController searchController = TextEditingController();
   String selectedFilter = 'All plants';
+  int visibleCount = 40;
+  static const lightFilters = {
+    'Indirect light': ['Bright indirect', 'Medium indirect'],
+    'Direct sunlight': ['Strong direct light'],
+    'Low light': ['Low indirect'],
+  };
 
   @override
   void dispose() {
@@ -44,18 +50,17 @@ class _DictionaryPageState extends State<DictionaryPage> {
     setState(() {
       searchController.clear();
       selectedFilter = 'All plants';
+      visibleCount = 40;
     });
     widget.onSavedOnlyChanged(false);
   }
 
   void changeBookmarkView() {
-    bool showSavedPlants = true;
-    if (widget.savedOnly) {
-      showSavedPlants = false;
-    }
+    final showSavedPlants = !widget.savedOnly;
     setState(() {
       searchController.clear();
       selectedFilter = 'All plants';
+      visibleCount = 40;
     });
     widget.onSavedOnlyChanged(showSavedPlants);
   }
@@ -64,6 +69,7 @@ class _DictionaryPageState extends State<DictionaryPage> {
     setState(() {
       searchController.text = name;
       selectedFilter = 'All plants';
+      visibleCount = 40;
     });
     widget.onSavedOnlyChanged(false);
   }
@@ -78,12 +84,9 @@ class _DictionaryPageState extends State<DictionaryPage> {
           .toLowerCase();
       final bool nameMatches = plantNames.contains(searchText);
 
-      bool categoryMatches = true;
-      if (selectedFilter == 'Easy care') {
-        categoryMatches = plant.difficulty == 'Easy';
-      } else if (selectedFilter == 'Low light') {
-        categoryMatches = plant.lowLight;
-      }
+      final bool categoryMatches =
+          selectedFilter == 'All plants' ||
+          (lightFilters[selectedFilter]?.contains(plant.light) ?? false);
 
       bool bookmarkMatches = true;
       if (widget.savedOnly) {
@@ -118,8 +121,8 @@ class _DictionaryPageState extends State<DictionaryPage> {
             onBookmark: () {
               widget.onBookmark(plant);
             },
-            onAdd: (String room) {
-              widget.onAdd(plant, room);
+            onAdd: (String room, int days) async {
+              await widget.onAdd(plant.withWateringDays(days), room);
             },
           );
         },
@@ -151,29 +154,42 @@ class _DictionaryPageState extends State<DictionaryPage> {
     );
 
     if (widget.savedOnly && widget.bookmarks.isEmpty) {
-      return ListView(
+      return Column(
         children: [
           heading,
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 100, 24, 40),
-            child: Column(
-              children: [
-                const Icon(Icons.bookmark_border, size: 48, color: mutedText),
-                const SizedBox(height: 24),
-                Text(
-                  'No saved plants yet',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleLarge,
+          Expanded(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 32,
                 ),
-                const SizedBox(height: 28),
-                SizedBox(
-                  width: 230,
-                  child: PrimaryButton(
-                    label: 'Browse all plants',
-                    onPressed: clearSearch,
-                  ),
+                child: Column(
+                  key: const ValueKey('empty-saved-message'),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.bookmark_border,
+                      size: 48,
+                      color: mutedText,
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'No saved plants yet',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 28),
+                    SizedBox(
+                      width: 230,
+                      child: PrimaryButton(
+                        label: 'Browse all plants',
+                        onPressed: clearSearch,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ],
@@ -200,7 +216,7 @@ class _DictionaryPageState extends State<DictionaryPage> {
               TextField(
                 controller: searchController,
                 onChanged: (String text) {
-                  setState(() {});
+                  setState(() => visibleCount = 40);
                 },
                 decoration: InputDecoration(
                   hintText: 'Search plants',
@@ -210,18 +226,34 @@ class _DictionaryPageState extends State<DictionaryPage> {
               ),
               const SizedBox(height: 16),
               SingleChildScrollView(
+                key: const ValueKey('dictionary-filters'),
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
                     buildFilterButton('All plants'),
-                    buildFilterButton('Easy care'),
-                    buildFilterButton('Low light'),
+                    for (final name in lightFilters.keys) ...[
+                      const SizedBox(width: 8),
+                      buildFilterButton(name),
+                    ],
                   ],
                 ),
               ),
               const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  '${results.length} ${results.length == 1 ? 'plant' : 'plants'}',
+                  style: const TextStyle(color: mutedText, fontSize: 12),
+                ),
+              ),
+              const SizedBox(height: 12),
               if (results.isEmpty) buildNoResults(),
-              buildPlantRows(results),
+              buildPlantRows(results.take(visibleCount).toList()),
+              if (results.length > visibleCount)
+                TextButton(
+                  onPressed: () => setState(() => visibleCount += 40),
+                  child: const Text('Show more plants'),
+                ),
             ],
           ),
         ),
@@ -234,21 +266,19 @@ class _DictionaryPageState extends State<DictionaryPage> {
     if (selectedFilter == name) {
       textColor = Colors.white;
     }
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Text(name),
-        selected: selectedFilter == name,
-        selectedColor: plantGreen,
-        backgroundColor: neutralSurface,
-        labelStyle: TextStyle(color: textColor),
-        showCheckmark: false,
-        onSelected: (bool selected) {
-          setState(() {
-            selectedFilter = name;
-          });
-        },
-      ),
+    return ChoiceChip(
+      label: Text(name),
+      selected: selectedFilter == name,
+      selectedColor: plantGreen,
+      backgroundColor: neutralSurface,
+      labelStyle: TextStyle(color: textColor),
+      showCheckmark: false,
+      onSelected: (bool selected) {
+        setState(() {
+          selectedFilter = name;
+          visibleCount = 40;
+        });
+      },
     );
   }
 
@@ -361,14 +391,15 @@ class _DictionaryPageState extends State<DictionaryPage> {
             plant.name,
             style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
           ),
-          Text(
-            plant.botanicalName,
-            style: const TextStyle(
-              color: mutedText,
-              fontStyle: FontStyle.italic,
-              fontSize: 12,
+          if (plant.botanicalName.trim().isNotEmpty)
+            Text(
+              plant.botanicalName,
+              style: const TextStyle(
+                color: mutedText,
+                fontStyle: FontStyle.italic,
+                fontSize: 12,
+              ),
             ),
-          ),
         ],
       ),
     );

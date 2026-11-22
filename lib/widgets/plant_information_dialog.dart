@@ -1,139 +1,172 @@
 import 'package:flutter/material.dart';
 
+import '../model/plant.dart';
 import '../services/api_service.dart';
-import 'plant_widgets.dart';
 
 class PlantInformationDialog extends StatefulWidget {
-  final String botanicalName;
-  const PlantInformationDialog({super.key, required this.botanicalName});
-
+  final Plant plant;
+  final ApiService? apiService;
+  const PlantInformationDialog({
+    super.key,
+    required this.plant,
+    this.apiService,
+  });
   @override
-  State<PlantInformationDialog> createState() {
-    return _PlantInformationDialogState();
-  }
+  State<PlantInformationDialog> createState() => _PlantInformationDialogState();
 }
 
 class _PlantInformationDialogState extends State<PlantInformationDialog> {
-  final ApiService apiService = ApiService();
-  bool isLoading = true;
-  String description = '';
-  String? errorMessage;
+  late final ApiService apiService = widget.apiService ?? ApiService();
+  late Future<PlantDescription> detail = apiService.description(widget.plant);
 
-  @override
-  void initState() {
-    super.initState();
-    loadDescription();
-  }
-
-  Future<void> loadDescription() async {
+  void reloadDescription() {
     setState(() {
-      isLoading = true;
-      errorMessage = null;
+      detail = apiService.description(widget.plant);
     });
-    try {
-      final String result = await apiService.getPlantDescription(
-        widget.botanicalName,
-      );
-      // Dialog bisa sudah ditutup ketika respons internet tiba.
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        description = result;
-        isLoading = false;
-      });
-    } catch (error) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        isLoading = false;
-        errorMessage = 'Could not load plant information. Check your connection and try again.';
-      });
-    }
   }
 
-  void showSource() {
-    final String title = widget.botanicalName.replaceAll(' ', '_');
-    final Uri url = Uri.https('en.wikipedia.org', '/wiki/$title');
-    showDialog<void>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          scrollable: true,
-          title: const Text('Source'),
-          content: SelectableText(
-            'Wikipedia contributors\n$url\n\n'
-            'CC BY-SA 4.0 · Text displayed without edits\n'
-            'https://creativecommons.org/licenses/by-sa/4.0/',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget buildInformation() {
-    if (isLoading) {
-      return const Text('Loading plant information…');
-    }
-    final String? message = errorMessage;
-    if (message != null) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(message),
-          const SizedBox(height: 12),
-          TextButton(
-            onPressed: loadDescription,
-            child: const Text('Try again'),
-          ),
-        ],
-      );
+  Widget descriptionContent(String text) {
+    if (text.trim().isEmpty) {
+      return const Text('Full description not available.');
     }
     return Column(
-      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(description, style: const TextStyle(height: 1.6)),
-        const SizedBox(height: 8),
-        TextButton(
-          onPressed: showSource,
-          style: TextButton.styleFrom(
-            padding: EdgeInsets.zero,
-            foregroundColor: mutedText,
-          ),
-          child: const Text(
-            'Source: Wikipedia',
-            style: TextStyle(fontSize: 12),
-          ),
+        for (final paragraph in text.split('\n\n'))
+          if (paragraph.trim().isNotEmpty) descriptionSection(paragraph),
+      ],
+    );
+  }
+
+  Widget descriptionSection(String paragraph) {
+    String? heading;
+    String body = paragraph.trim();
+    for (final label in ['Examples', 'Origin', 'Care guidance']) {
+      if (body.startsWith('$label: ')) {
+        heading = label;
+        body = body.substring(label.length + 2);
+        break;
+      }
+    }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (heading != null) ...[
+            Semantics(
+              header: true,
+              child: Text(
+                heading,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+            const SizedBox(height: 6),
+          ],
+          Text(body, style: const TextStyle(height: 1.55)),
+        ],
+      ),
+    );
+  }
+
+  Widget sources(PlantDescription result) {
+    final plant = widget.plant;
+    return ExpansionTile(
+      tilePadding: EdgeInsets.zero,
+      childrenPadding: const EdgeInsets.only(bottom: 8),
+      expandedCrossAxisAlignment: CrossAxisAlignment.start,
+      expandedAlignment: Alignment.centerLeft,
+      shape: const Border(),
+      collapsedShape: const Border(),
+      title: const Text(
+        'Sources & credits',
+        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+      ),
+      children: [
+        Text(
+          result.fromInternet
+              ? 'Description loaded from Plantfolio on GitHub.'
+              : 'Description from the saved Plantfolio catalog.',
+          style: Theme.of(context).textTheme.bodySmall,
         ),
+        if (plant.reference.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          const Text(
+            'Description source',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
+          SelectableText(
+            plant.reference,
+            style: const TextStyle(fontSize: 13, height: 1.5),
+          ),
+        ],
+        if (plant.photoReference.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          const Text(
+            'Photo source',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
+          SelectableText(
+            plant.photoReference,
+            style: const TextStyle(fontSize: 13, height: 1.5),
+          ),
+        ],
       ],
     );
   }
 
   @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      scrollable: true,
-      title: Text(widget.botanicalName),
-      content: SizedBox(width: 340, child: buildInformation()),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: const Text('Close'),
-        ),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => AlertDialog(
+    scrollable: true,
+    title: Text(widget.plant.name),
+    content: SizedBox(
+      width: 340,
+      child: FutureBuilder<PlantDescription>(
+        future: detail,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Unable to load the plant description.'),
+                TextButton(
+                  onPressed: reloadDescription,
+                  child: const Text('Try again'),
+                ),
+              ],
+            );
+          }
+          if (!snapshot.hasData) return const Text('Loading description...');
+          final result = snapshot.data!;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (!result.fromInternet) ...[
+                Text(
+                  'Showing the saved description.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                TextButton(
+                  onPressed: reloadDescription,
+                  child: const Text('Try again'),
+                ),
+                const SizedBox(height: 8),
+              ],
+              descriptionContent(result.text),
+              sources(result),
+            ],
+          );
+        },
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Close'),
+      ),
+    ],
+  );
 }

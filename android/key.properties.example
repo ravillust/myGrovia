@@ -1,0 +1,6 @@
+# Salin ke key.properties (diabaikan Git), lalu isi nilai milik sendiri.
+# Jangan commit key.properties atau berkas keystore.
+storePassword=YOUR_PRIVATE_PASSWORD
+keyPassword=YOUR_PRIVATE_PASSWORD
+keyAlias=mygrovia-release
+storeFile=C:/Users/YOUR_USERNAME/.android/mygrovia/mygrovia-release.jks
