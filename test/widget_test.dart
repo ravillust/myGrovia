@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:my_grovia/widgets/watering_dialog.dart';
-import 'package:my_grovia/pages/my_space_page.dart';
-import 'package:my_grovia/model/plant.dart';
+import 'package:my_grovia/pages/dictionary_page.dart';
 
 void main() {
   testWidgets('Watering rejects invalid volume', (tester) async {
@@ -14,70 +13,57 @@ void main() {
     await tester.pump();
     expect(find.text('Enter a positive whole number'), findsOneWidget);
   });
+
   testWidgets(
-    'Simple My Space counts plants needing attention and opens collection',
+    'Dictionary menu opens saved plants and scrollable sources on a small screen',
     (tester) async {
-      int openedCollection = 0;
-      const plant = Plant(
-        name: 'A',
-        botanicalName: '',
-        light: '',
-        wateringDays: 3,
-        temperature: '',
-        description: '',
-        tip: '',
-      );
+      tester.view.physicalSize = const Size(320, 568);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      bool savedOnly = false;
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: MySpacePage(
-              plants: [
-                CollectionPlant(
-                  plant: plant,
-                  room: 'Room',
-                  added: DateTime.now(),
-                  history: [],
-                ),
-                CollectionPlant(
-                  plant: plant,
-                  room: 'Room',
-                  added: DateTime.now(),
-                  history: [
-                    WateringEntry(
-                      DateTime.now().subtract(const Duration(days: 5)),
-                      '',
-                      100,
-                    ),
-                  ],
-                ),
-                CollectionPlant(
-                  plant: plant,
-                  room: 'Room',
-                  added: DateTime.now(),
-                  history: [WateringEntry(DateTime.now(), '', 100)],
-                ),
-              ],
-              onOpenCollection: () => openedCollection++,
+          home: StatefulBuilder(
+            builder: (context, setState) => Scaffold(
+              body: DictionaryPage(
+                catalog: [],
+                collection: [],
+                bookmarks: {},
+                onAdd: (_, _) async {},
+                onBookmark: (_) async {},
+                savedOnly: savedOnly,
+                onSavedOnlyChanged: (value) =>
+                    setState(() => savedOnly = value),
+              ),
             ),
           ),
         ),
       );
-      expect(find.byType(ListTile), findsNWidgets(2));
-      final collectionRow = find.widgetWithText(ListTile, 'My collection');
-      expect(
-        find.descendant(of: collectionRow, matching: find.text('3')),
-        findsOneWidget,
-      );
-      final dueRow = find.widgetWithText(ListTile, 'To check today');
-      expect(
-        find.descendant(of: dueRow, matching: find.text('2')),
-        findsOneWidget,
-      );
-      expect(find.text('A'), findsNothing);
-      expect(find.textContaining('Swagger'), findsNothing);
-      await tester.tap(dueRow);
-      await tester.pump();
-      expect(openedCollection, 1);
+      await tester.pumpAndSettle();
+      Future<void> choose(String label) async {
+        await tester.tap(find.byTooltip('Dictionary options'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(label));
+        await tester.pumpAndSettle();
+      }
+
+      await choose('Saved plants');
+      expect(find.text('No saved plants yet'), findsOneWidget);
+      await choose('About & sources');
+      expect(find.textContaining('CC BY-NC-SA 4.0'), findsOneWidget);
+      await tester.ensureVisible(find.text('Plant photos'));
+      await tester.pumpAndSettle();
+      expect(find.text('Plant photos').hitTestable(), findsOneWidget);
+      expect(find.textContaining('Sources & credits'), findsOneWidget);
+      await tester.ensureVisible(find.text('Watering guidance'));
+      await tester.pumpAndSettle();
+      expect(find.text('Watering guidance').hitTestable(), findsOneWidget);
+      await tester.tap(find.text('Close'));
+      await tester.pumpAndSettle();
+      expect(find.text('No saved plants yet'), findsOneWidget);
+      await choose('All plants');
+      expect(find.text('Plant dictionary'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

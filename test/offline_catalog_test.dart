@@ -90,7 +90,7 @@ void main() {
             plant: plant,
             isSaved: false,
             isAdded: false,
-            onBookmark: () {},
+            onBookmark: () async {},
             onAdd: (room, days) async {
               added = true;
             },

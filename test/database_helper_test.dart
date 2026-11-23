@@ -254,7 +254,7 @@ void main() {
         (await helper.collection()).single.history.single.note,
         'Old note',
       );
-      expect(await (await helper.database).getVersion(), 3);
+      expect(await (await helper.database).getVersion(), 4);
       await helper.close();
     },
   );

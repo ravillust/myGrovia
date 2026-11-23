@@ -108,7 +108,7 @@ class PageHeading extends StatelessWidget {
       headingItems.add(actionButton);
     }
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
       child: Row(children: headingItems),
     );
   }
@@ -141,7 +141,7 @@ class PrimaryButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (icon != null) Icon(icon, size: 20),
-            if (icon != null) const SizedBox(width: 10),
+            if (icon != null) const SizedBox(width: 8),
             Flexible(
               child: Text(
                 label,

@@ -49,7 +49,7 @@ void main() {
           directory: folder.path,
           initialCatalog: catalog,
         );
-        expect(await (await helper.database).getVersion(), 3);
+        expect(await (await helper.database).getVersion(), 4);
         expect((await helper.catalog()).length, 297);
         expect(await helper.catalog(query: 'outdoor'), isEmpty);
         await expectLater(

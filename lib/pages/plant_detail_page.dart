@@ -10,7 +10,7 @@ class PlantDetailPage extends StatefulWidget {
   final Plant plant;
   final bool isSaved;
   final bool isAdded;
-  final VoidCallback onBookmark;
+  final Future<void> Function() onBookmark;
   final Future<void> Function(String, int) onAdd;
   const PlantDetailPage({
     super.key,
@@ -29,6 +29,7 @@ class PlantDetailPage extends StatefulWidget {
 class _PlantDetailPageState extends State<PlantDetailPage> {
   bool saved = false;
   bool adding = false;
+  bool savingBookmark = false;
 
   @override
   void initState() {
@@ -36,11 +37,23 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
     saved = widget.isSaved;
   }
 
-  void changeBookmark() {
-    widget.onBookmark();
-    setState(() {
-      saved = !saved;
-    });
+  Future<void> changeBookmark() async {
+    if (savingBookmark) return;
+    setState(() => savingBookmark = true);
+    try {
+      await widget.onBookmark();
+      if (mounted) setState(() => saved = !saved);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unable to update saved plants. Try again.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => savingBookmark = false);
+    }
   }
 
   void showPlantInformation() {
@@ -151,7 +164,7 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
                           ),
                         ),
                       ],
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
                       Text(
                         plant.description,
                         style: const TextStyle(
@@ -170,7 +183,7 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
                       ),
                       const SizedBox(height: 24),
                       Container(
-                        padding: const EdgeInsets.all(18),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
@@ -183,7 +196,7 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
                               'Light',
                               plant.light,
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 16),
                             careInfo(
                               Icons.water_drop_outlined,
                               'Water',
@@ -191,7 +204,7 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
                                   ? 'About every ${plant.wateringDays} days'
                                   : 'Set an interval when adding this plant',
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 16),
                             careInfo(
                               Icons.thermostat_outlined,
                               'Temperature',
@@ -228,7 +241,7 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
                   ),
                   IconButton(
                     tooltip: bookmarkLabel,
-                    onPressed: changeBookmark,
+                    onPressed: savingBookmark ? null : changeBookmark,
                     style: IconButton.styleFrom(backgroundColor: Colors.white),
                     icon: Icon(bookmarkIcon, color: plantGreen),
                   ),

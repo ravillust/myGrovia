@@ -6,7 +6,6 @@ import '../services/database_helper.dart';
 import '../widgets/plant_widgets.dart';
 import 'collection_page.dart';
 import 'dictionary_page.dart';
-import 'my_space_page.dart';
 
 class HomePage extends StatefulWidget {
   final DatabaseHelper? databaseHelper;
@@ -58,11 +57,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     try {
       final List<Plant> result = await databaseHelper.catalog();
       final collection = await databaseHelper.collection();
+      final saved = await databaseHelper.bookmarks();
       if (!mounted) {
         return;
       }
       setState(() {
         catalog = result;
+        bookmarks
+          ..clear()
+          ..addAll(saved);
         // Koleksi dimuat dari SQLite, tidak diisi data contoh.
         plants
           ..clear()
@@ -93,22 +96,22 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     });
   }
 
-  void openCollection() {
-    changeTab(1);
-  }
-
   void changeSavedFilter(bool showSavedPlants) {
     setState(() {
       savedPlantsOnly = showSavedPlants;
     });
   }
 
-  void changeBookmark(Plant plant) {
+  Future<void> changeBookmark(Plant plant) async {
+    final id = plant.id!;
+    final saved = !bookmarks.contains(id);
+    await databaseHelper.saveBookmark(id, saved: saved);
+    if (!mounted) return;
     setState(() {
-      if (bookmarks.contains(plant.name)) {
-        bookmarks.remove(plant.name);
+      if (saved) {
+        bookmarks.add(id);
       } else {
-        bookmarks.add(plant.name);
+        bookmarks.remove(id);
       }
     });
   }
@@ -135,7 +138,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   Widget buildSelectedPage() {
     // Hanya tab aktif yang dibuat. Pencarian kembali kosong saat pindah tab.
-    // Koleksi dan bookmark tetap ada karena disimpan di HomePage.
+    // Koleksi dan bookmark dimuat dari SQLite.
     if (selectedTab == 0) {
       return DictionaryPage(
         catalog: catalog,
@@ -147,14 +150,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         onBookmark: changeBookmark,
       );
     }
-    if (selectedTab == 1) {
-      return CollectionPage(
-        plants: plants,
-        onBrowse: openDictionary,
-        onChanged: refreshCollection,
-      );
-    }
-    return MySpacePage(plants: plants, onOpenCollection: openCollection);
+    return CollectionPage(
+      plants: plants,
+      onBrowse: openDictionary,
+      onChanged: refreshCollection,
+    );
   }
 
   @override
@@ -182,7 +182,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   Icons.local_florist_outlined,
                   'My collection',
                 ),
-                navigationButton(2, Icons.person_outline, 'My space'),
               ],
             ),
           ),

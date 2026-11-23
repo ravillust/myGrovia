@@ -7,12 +7,21 @@ class WateringIntervalDialog extends StatefulWidget {
 }
 
 class _WateringIntervalDialogState extends State<WateringIntervalDialog> {
-  final controller = TextEditingController();
+  final intervalController = TextEditingController();
   String? error;
   @override
   void dispose() {
-    controller.dispose();
+    intervalController.dispose();
     super.dispose();
+  }
+
+  void confirmInterval() {
+    final days = int.tryParse(intervalController.text.trim());
+    if (days == null || days < 1 || days > 365) {
+      setState(() => error = 'Enter a number from 1 to 365');
+      return;
+    }
+    Navigator.pop(context, days);
   }
 
   @override
@@ -25,8 +34,9 @@ class _WateringIntervalDialogState extends State<WateringIntervalDialog> {
         const Text(
           'This plant has no suggested watering interval. Choose one that suits your plant and its conditions.',
         ),
+        const SizedBox(height: 16),
         TextField(
-          controller: controller,
+          controller: intervalController,
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
             labelText: 'Interval (days)',
@@ -40,17 +50,7 @@ class _WateringIntervalDialogState extends State<WateringIntervalDialog> {
         onPressed: () => Navigator.pop(context),
         child: const Text('Cancel'),
       ),
-      FilledButton(
-        onPressed: () {
-          final value = int.tryParse(controller.text);
-          if (value == null || value < 1 || value > 365) {
-            setState(() => error = 'Enter a number from 1 to 365');
-            return;
-          }
-          Navigator.pop(context, value);
-        },
-        child: const Text('Continue'),
-      ),
+      FilledButton(onPressed: confirmInterval, child: const Text('Continue')),
     ],
   );
 }

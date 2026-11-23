@@ -171,12 +171,12 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(fontWeight: FontWeight.w700),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 8),
                       Text(
                         item.room,
                         style: const TextStyle(color: mutedText, fontSize: 12),
                       ),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 24),
                       Text(
                         item.history.isEmpty
                             ? 'Watering status'
@@ -195,7 +195,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                           style: const TextStyle(color: mutedText, height: 1.5),
                         ),
                       ],
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
                       PrimaryButton(
                         label: busy
                             ? 'Saving...'
@@ -205,7 +205,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                         icon: Icons.water_drop_outlined,
                         onPressed: busy ? null : waterPlant,
                       ),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 24),
                       Row(
                         children: [
                           Expanded(
@@ -237,7 +237,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                         ),
                       for (final WateringEntry entry in entries)
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 18),
+                          padding: const EdgeInsets.only(bottom: 16),
                           child: Row(
                             children: [
                               const Icon(
@@ -278,7 +278,7 @@ class _CollectionDetailPageState extends State<CollectionDetailPage> {
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 6),
+                                    const SizedBox(height: 8),
                                     Row(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,

@@ -49,7 +49,7 @@ class _PlantInformationDialogState extends State<PlantInformationDialog> {
       }
     }
     return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.only(bottom: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -61,7 +61,7 @@ class _PlantInformationDialogState extends State<PlantInformationDialog> {
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
           ],
           Text(body, style: const TextStyle(height: 1.55)),
         ],
@@ -95,7 +95,7 @@ class _PlantInformationDialogState extends State<PlantInformationDialog> {
             'Description source',
             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           SelectableText(
             plant.reference,
             style: const TextStyle(fontSize: 13, height: 1.5),
@@ -107,7 +107,7 @@ class _PlantInformationDialogState extends State<PlantInformationDialog> {
             'Photo source',
             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           SelectableText(
             plant.photoReference,
             style: const TextStyle(fontSize: 13, height: 1.5),

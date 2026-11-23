@@ -67,9 +67,22 @@ void main() {
       try {
         await tester.pumpWidget(const MyGroviaApp());
         await waitFor(find.byType(TextField));
+        expect(find.byTooltip('My space'), findsNothing);
+        final bar = tester
+            .widget<Scaffold>(find.byType(Scaffold).first)
+            .bottomNavigationBar!;
+        expect(
+          find.descendant(
+            of: find.byWidget(bar),
+            matching: find.byType(IconButton),
+          ),
+          findsNWidgets(2),
+        );
         await tester.enterText(find.byType(TextField), 'Monstera');
         await settle();
         await tap(find.text('Monstera Deliciosa'));
+        await tap(find.byTooltip('Save plant'));
+        await waitFor(find.byTooltip('Remove bookmark'));
         await tap(find.text('Read more'));
         await tap(find.text('Sources & credits'));
         await waitFor(find.text('Description source'));
@@ -121,6 +134,18 @@ void main() {
         });
         await tester.pumpWidget(const MyGroviaApp());
         await waitFor(find.byType(TextField));
+        await tap(find.byTooltip('Dictionary options'));
+        await tap(find.text('Saved plants'));
+        expect(find.text('1 plant'), findsOneWidget);
+        await tap(find.text('Monstera Deliciosa'));
+        expect(find.text('Already in Collection'), findsOneWidget);
+        await tap(find.byTooltip('Remove bookmark'));
+        await waitFor(find.byTooltip('Save plant'));
+        await tap(find.byTooltip('Back'));
+        await waitFor(find.text('No saved plants yet'));
+        await tester.runAsync(() async {
+          expect(await helper.bookmarks(), isEmpty);
+        });
         await tap(find.byTooltip('My collection'));
         await tap(find.text('Monstera rumah'));
         expect(find.text('In 4 days'), findsOneWidget);

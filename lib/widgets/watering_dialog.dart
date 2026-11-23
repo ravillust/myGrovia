@@ -85,7 +85,7 @@ class _WateringDialogState extends State<WateringDialog> {
                 }
               },
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             const Text(
               'Note (optional)',
               style: TextStyle(fontWeight: FontWeight.w600),

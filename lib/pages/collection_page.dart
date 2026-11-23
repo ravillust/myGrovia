@@ -82,7 +82,7 @@ class CollectionPage extends StatelessWidget {
                           child: PlantPhoto(plant: item.plant, height: 108),
                         ),
                       ),
-                      const SizedBox(width: 14),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,7 +103,7 @@ class CollectionPage extends StatelessWidget {
                                 fontSize: 12,
                               ),
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 16),
                             Row(
                               children: [
                                 Icon(
@@ -111,7 +111,7 @@ class CollectionPage extends StatelessWidget {
                                   size: 17,
                                   color: wateringStatusColor(item),
                                 ),
-                                const SizedBox(width: 6),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     item.status,
@@ -169,14 +169,11 @@ class CollectionPage extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
             ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: 280,
-              child: PrimaryButton(
-                label: 'Browse plant dictionary',
-                icon: Icons.eco_outlined,
-                onPressed: onBrowse,
-              ),
+            const SizedBox(height: 8),
+            const Text(
+              'Tap + to add your first plant.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: mutedText, fontSize: 14, height: 1.5),
             ),
           ],
         ),

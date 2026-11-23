@@ -110,6 +110,28 @@ class DatabaseHelper {
     return Plant.fromJson(jsonDecode(rows.single['data'] as String));
   }
 
+  Future<Set<String>> bookmarks() async {
+    final db = await database;
+    final rows = await db.query('bookmarks');
+    return rows.map((row) => row['catalog_id'] as String).toSet();
+  }
+
+  Future<void> saveBookmark(String catalogId, {required bool saved}) async {
+    final db = await database;
+    if (saved) {
+      await detail(catalogId);
+      await db.insert('bookmarks', {
+        'catalog_id': catalogId,
+      }, conflictAlgorithm: ConflictAlgorithm.ignore);
+    } else {
+      await db.delete(
+        'bookmarks',
+        where: 'catalog_id = ?',
+        whereArgs: [catalogId],
+      );
+    }
+  }
+
   Future<List<CollectionPlant>> collection() async {
     final db = await database;
     final rows = await db.query('collection', orderBy: 'added DESC');

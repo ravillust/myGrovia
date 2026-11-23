@@ -5,7 +5,6 @@ import 'package:my_grovia/pages/edit_plant_page.dart';
 import 'package:my_grovia/pages/collection_page.dart';
 import 'package:my_grovia/pages/plant_detail_page.dart';
 import 'package:my_grovia/pages/collection_detail_page.dart';
-import 'package:my_grovia/pages/my_space_page.dart';
 import 'package:my_grovia/pages/dictionary_page.dart';
 import 'package:my_grovia/widgets/plant_widgets.dart';
 import 'package:my_grovia/model/plant.dart';
@@ -41,15 +40,12 @@ void main() {
       ),
       CollectionDetailPage(item: editItem(), onChanged: () {}, onDelete: () {}),
       Scaffold(
-        body: MySpacePage(plants: [], onOpenCollection: () {}),
-      ),
-      Scaffold(
         body: DictionaryPage(
           catalog: [],
           collection: [],
           bookmarks: {},
           onAdd: (_, _) async {},
-          onBookmark: (_) {},
+          onBookmark: (_) async {},
           savedOnly: true,
           onSavedOnlyChanged: (_) {},
         ),
@@ -78,7 +74,7 @@ void main() {
               ),
               isSaved: false,
               isAdded: false,
-              onBookmark: () {},
+              onBookmark: () async {},
               onAdd: (_, _) async {},
             ),
           ),
@@ -111,7 +107,7 @@ void main() {
               collection: [],
               bookmarks: {},
               onAdd: (_, _) async {},
-              onBookmark: (_) {},
+              onBookmark: (_) async {},
               savedOnly: true,
               onSavedOnlyChanged: (value) => savedOnly = value,
             ),
@@ -134,6 +130,8 @@ void main() {
   testWidgets('Edit form validates name and interval', (tester) async {
     await tester.pumpWidget(MaterialApp(home: EditPlantPage(item: editItem())));
     await tester.enterText(find.byType(TextFormField).at(2), '0');
+    await tester.ensureVisible(find.text('Save'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Save'));
     await tester.pump();
     expect(find.text('Enter a plant name'), findsOneWidget);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../model/plant.dart';
 import '../widgets/plant_widgets.dart';
+import '../widgets/about_sources_dialog.dart';
 import 'plant_detail_page.dart';
 
 class DictionaryPage extends StatefulWidget {
@@ -9,7 +10,7 @@ class DictionaryPage extends StatefulWidget {
   final List<CollectionPlant> collection;
   final Set<String> bookmarks;
   final Future<void> Function(Plant, String) onAdd;
-  final void Function(Plant) onBookmark;
+  final Future<void> Function(Plant) onBookmark;
   final bool savedOnly;
   final void Function(bool) onSavedOnlyChanged;
 
@@ -65,15 +66,6 @@ class _DictionaryPageState extends State<DictionaryPage> {
     widget.onSavedOnlyChanged(showSavedPlants);
   }
 
-  void searchSuggestedPlant(String name) {
-    setState(() {
-      searchController.text = name;
-      selectedFilter = 'All plants';
-      visibleCount = 40;
-    });
-    widget.onSavedOnlyChanged(false);
-  }
-
   List<Plant> findMatchingPlants() {
     final String searchText = searchController.text.trim().toLowerCase();
     final List<Plant> results = [];
@@ -90,7 +82,7 @@ class _DictionaryPageState extends State<DictionaryPage> {
 
       bool bookmarkMatches = true;
       if (widget.savedOnly) {
-        bookmarkMatches = widget.bookmarks.contains(plant.name);
+        bookmarkMatches = widget.bookmarks.contains(plant.id);
       }
 
       if (nameMatches && categoryMatches && bookmarkMatches) {
@@ -103,7 +95,8 @@ class _DictionaryPageState extends State<DictionaryPage> {
   Future<void> openPlantDetail(Plant plant) async {
     bool alreadyInCollection = false;
     for (final CollectionPlant item in widget.collection) {
-      if (item.plant.name == plant.name) {
+      // Nama koleksi dapat diedit; ID tetap mengacu ke tanaman Dictionary.
+      if (plant.id != null && item.plant.id == plant.id) {
         alreadyInCollection = true;
         break;
       }
@@ -116,11 +109,9 @@ class _DictionaryPageState extends State<DictionaryPage> {
         builder: (context) {
           return PlantDetailPage(
             plant: plant,
-            isSaved: widget.bookmarks.contains(plant.name),
+            isSaved: widget.bookmarks.contains(plant.id),
             isAdded: alreadyInCollection,
-            onBookmark: () {
-              widget.onBookmark(plant);
-            },
+            onBookmark: () => widget.onBookmark(plant),
             onAdd: (String room, int days) async {
               await widget.onAdd(plant.withWateringDays(days), room);
             },
@@ -136,20 +127,51 @@ class _DictionaryPageState extends State<DictionaryPage> {
   @override
   Widget build(BuildContext context) {
     String title = 'Plant dictionary';
-    String bookmarkLabel = 'Show saved plants';
+    String bookmarkLabel = 'Saved plants';
     IconData bookmarkIcon = Icons.bookmark_border;
     if (widget.savedOnly) {
       title = 'Saved plants';
-      bookmarkLabel = 'Show all plants';
+      bookmarkLabel = 'All plants';
       bookmarkIcon = Icons.bookmark;
     }
 
     final Widget heading = PageHeading(
       title: title,
-      action: IconButton(
-        tooltip: bookmarkLabel,
-        onPressed: changeBookmarkView,
-        icon: Icon(bookmarkIcon, color: plantGreen),
+      action: PopupMenuButton<String>(
+        tooltip: 'Dictionary options',
+        icon: const Icon(Icons.more_vert, color: plantGreen),
+        onSelected: (value) {
+          if (value == 'saved') {
+            changeBookmarkView();
+          } else if (value == 'about') {
+            showDialog<void>(
+              context: context,
+              builder: (_) => const AboutSourcesDialog(),
+            );
+          }
+        },
+        itemBuilder: (_) => [
+          PopupMenuItem(
+            value: 'saved',
+            child: Row(
+              children: [
+                Icon(bookmarkIcon, color: plantGreen),
+                const SizedBox(width: 12),
+                Text(bookmarkLabel),
+              ],
+            ),
+          ),
+          const PopupMenuItem(
+            value: 'about',
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, color: plantGreen),
+                SizedBox(width: 12),
+                Text('About & sources'),
+              ],
+            ),
+          ),
+        ],
       ),
     );
 
@@ -179,7 +201,7 @@ class _DictionaryPageState extends State<DictionaryPage> {
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 24),
                     SizedBox(
                       width: 230,
                       child: PrimaryButton(
@@ -283,55 +305,24 @@ class _DictionaryPageState extends State<DictionaryPage> {
   }
 
   Widget buildNoResults() {
-    String message = 'No plants match these filters. Try clearing them.';
-    if (searchController.text.trim().isNotEmpty) {
-      message =
-          'We couldn’t match “${searchController.text.trim()}”. Try a shorter name or clear the filters.';
-    }
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 32),
       child: Column(
         children: [
           const Icon(Icons.search, size: 48, color: mutedText),
-          const SizedBox(height: 28),
+          const SizedBox(height: 24),
           Text(
             'No plants found',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
-          const SizedBox(height: 10),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: mutedText, height: 1.6),
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: 230,
-            child: PrimaryButton(label: 'Clear search', onPressed: clearSearch),
-          ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 8),
           const Text(
-            'TRY SEARCHING',
-            style: TextStyle(color: mutedText, fontSize: 12),
-          ),
-          Wrap(
-            children: [
-              buildSearchSuggestion('Pothos'),
-              buildSearchSuggestion('Calathea'),
-              buildSearchSuggestion('Snake Plant'),
-            ],
+            'Try another name or change the filters.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: mutedText, fontSize: 14, height: 1.5),
           ),
         ],
       ),
-    );
-  }
-
-  Widget buildSearchSuggestion(String name) {
-    return TextButton(
-      onPressed: () {
-        searchSuggestedPlant(name);
-      },
-      child: Text(name),
     );
   }
 
@@ -386,7 +377,7 @@ class _DictionaryPageState extends State<DictionaryPage> {
             borderRadius: BorderRadius.circular(20),
             child: PlantPhoto(plant: plant, height: 205),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             plant.name,
             style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),

@@ -11,7 +11,7 @@ Future<Database> openLocalDatabase({
   final database = await factory.openDatabase(
     path.join(directory, 'mygrovia.sqlite'),
     options: OpenDatabaseOptions(
-      version: 3,
+      version: 4,
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: _createTables,
       onUpgrade: _upgradeDatabase,
@@ -44,6 +44,12 @@ Future<void> _createTables(Database db, int version) async {
   await db.execute(
     'CREATE INDEX watering_by_plant ON watering(plant_id, watered_at DESC)',
   );
+  await _createBookmarks(db);
+}
+
+Future<void> _createBookmarks(Database db) async {
+  await db.execute('''CREATE TABLE IF NOT EXISTS bookmarks (
+    catalog_id TEXT PRIMARY KEY REFERENCES catalog(id) ON DELETE CASCADE)''');
 }
 
 Future<void> _upgradeDatabase(
@@ -61,6 +67,9 @@ Future<void> _upgradeDatabase(
     await db.execute(
       'ALTER TABLE catalog ADD COLUMN active INTEGER NOT NULL DEFAULT 1',
     );
+  }
+  if (oldVersion < 4) {
+    await _createBookmarks(db);
   }
 }
 

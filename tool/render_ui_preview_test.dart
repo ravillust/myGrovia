@@ -14,9 +14,12 @@ import 'package:my_grovia/pages/collection_detail_page.dart';
 import 'package:my_grovia/pages/collection_page.dart';
 import 'package:my_grovia/pages/dictionary_page.dart';
 import 'package:my_grovia/pages/plant_detail_page.dart';
-import 'package:my_grovia/pages/my_space_page.dart';
+import 'package:my_grovia/pages/edit_plant_page.dart';
 import 'package:my_grovia/services/api_service.dart';
 import 'package:my_grovia/widgets/plant_information_dialog.dart';
+import 'package:my_grovia/widgets/about_sources_dialog.dart';
+import 'package:my_grovia/widgets/watering_interval_dialog.dart';
+import 'package:my_grovia/widgets/watering_dialog.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -68,6 +71,9 @@ void main() {
     final folder = Directory('build/ui-previews');
     folder.createSync(recursive: true);
     final pages = <String, Widget>{
+      'edit-plant': EditPlantPage(item: today),
+      'watering-interval': const Scaffold(body: WateringIntervalDialog()),
+      'record-watering': const Scaffold(body: WateringDialog()),
       'read-more-offline': Scaffold(
         body: PlantInformationDialog(
           plant: monstera,
@@ -95,7 +101,18 @@ void main() {
           collection: [],
           bookmarks: {},
           onAdd: (_, _) async {},
-          onBookmark: (_) {},
+          onBookmark: (_) async {},
+          savedOnly: false,
+          onSavedOnlyChanged: (_) {},
+        ),
+      ),
+      'no-plants-found': Scaffold(
+        body: DictionaryPage(
+          catalog: [],
+          collection: [],
+          bookmarks: {},
+          onAdd: (_, _) async {},
+          onBookmark: (_) async {},
           savedOnly: false,
           onSavedOnlyChanged: (_) {},
         ),
@@ -106,7 +123,7 @@ void main() {
           collection: [],
           bookmarks: {},
           onAdd: (_, _) async {},
-          onBookmark: (_) {},
+          onBookmark: (_) async {},
           savedOnly: true,
           onSavedOnlyChanged: (_) {},
         ),
@@ -122,7 +139,7 @@ void main() {
           collection: [],
           bookmarks: {},
           onAdd: (_, _) async {},
-          onBookmark: (_) {},
+          onBookmark: (_) async {},
           savedOnly: false,
           onSavedOnlyChanged: (_) {},
         ),
@@ -131,7 +148,7 @@ void main() {
         plant: adenium,
         isSaved: false,
         isAdded: false,
-        onBookmark: () {},
+        onBookmark: () async {},
         onAdd: (_, _) async {},
       ),
       'collection': Scaffold(
@@ -141,14 +158,15 @@ void main() {
           onChanged: () {},
         ),
       ),
+      'collection-empty': Scaffold(
+        body: CollectionPage(plants: [], onBrowse: () {}, onChanged: () {}),
+      ),
       'collection-detail': CollectionDetailPage(
         item: today,
         onChanged: () {},
         onDelete: () {},
       ),
-      'my-space': Scaffold(
-        body: MySpacePage(plants: [today, never], onOpenCollection: () {}),
-      ),
+      'about-sources': const Scaffold(body: AboutSourcesDialog()),
     };
     for (final entry in pages.entries) {
       await tester.pumpWidget(const SizedBox());
@@ -191,12 +209,6 @@ void main() {
         await tester.pumpAndSettle();
       }
       expect(tester.takeException(), isNull);
-      if (entry.key == 'my-space') {
-        expect(
-          tester.getTopLeft(find.text('My space')).dy,
-          greaterThanOrEqualTo(24),
-        );
-      }
       await expectLater(
         find.byKey(const ValueKey('preview')),
         matchesGoldenFile(

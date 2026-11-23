@@ -23,7 +23,7 @@ Widget page({bool savedOnly = false, Set<String> bookmarks = const {}}) =>
           collection: [],
           bookmarks: bookmarks,
           onAdd: (_, _) async {},
-          onBookmark: (_) {},
+          onBookmark: (_) async {},
           savedOnly: savedOnly,
           onSavedOnlyChanged: (_) {},
         ),
@@ -92,7 +92,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(
-        page(savedOnly: true, bookmarks: {'Monstera Deliciosa', 'Adenium'}),
+        page(savedOnly: true, bookmarks: {'swiss-cheese-plant', 'adenium'}),
       );
       await tester.pumpAndSettle();
       expect(find.text('2 plants'), findsOneWidget);
