@@ -6,7 +6,7 @@ from pathlib import Path
 
 ADB = str(Path.home() / 'AppData/Local/Android/sdk/platform-tools/adb.exe')
 SERIAL = 'AUXGFMJZBUOJJRZ9'
-PACKAGE = 'com.rafifairuz.my_grovia.presentation'
+PACKAGE = 'com.rafi.mygrovia.presentation'
 parser = argparse.ArgumentParser()
 parser.add_argument('name')
 parser.add_argument('--tap', nargs=2, type=int, action='append')

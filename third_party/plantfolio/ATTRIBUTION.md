@@ -21,7 +21,7 @@ Four original display-name/scientific-name labels are retained in the seed tool.
 Some source entries describe plant groups rather than exclusive species records.
 Other names use the upstream typeName without guessing scientific names.
 No Wikipedia text or invented plant facts are added. Attribution is available
-in the app through My Space > Plant data source and each Read more dialog.
+in the app through Dictionary > About & sources and each Read more dialog.
 
 Photographs have separate licenses; Plantfolio does not supply or license them.
 See ../catalog_photos/README.md and manifest.json for verified Wikimedia source

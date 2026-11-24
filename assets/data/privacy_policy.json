@@ -1,0 +1,51 @@
+{
+  "title": "myGrovia Privacy Policy",
+  "effective_date": "24 November 2026",
+  "contact_email": "support.grovia@gmail.com",
+  "sections": [
+    {
+      "title": "About this policy",
+      "text": "This policy explains how the myGrovia team handles information in the myGrovia Android app (com.rafi.mygrovia). myGrovia is a plant collection and watering journal. It does not require an account or login."
+    },
+    {
+      "title": "Information stored on your device",
+      "text": "Your saved plants, plant names, room labels, watering intervals, watering times, water amounts, notes, and selected personal photos are stored in the app's private storage on your device. This information is used to display your collection, calculate watering schedules, and show watering history. The app does not upload your collection or watering records to a server operated by the myGrovia team."
+    },
+    {
+      "title": "Photos you choose",
+      "text": "If you choose a personal photo using the system photo picker, the app copies the selected image into its private storage so it remains available after restarting. The app does not upload that image or add it to your public gallery. Dictionary photos and the default illustration are bundled with the app."
+    },
+    {
+      "title": "Internet requests and GitHub",
+      "text": "Opening Read more or retrying a description sends an HTTPS request to the GitHub API for public plant descriptions. The request does not contain your collection, watering history, or personal photos. As the service provider, GitHub may process technical information such as your IP address, request headers, and request time under its own privacy policy: https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement . A bundled description remains available if the request fails."
+    },
+    {
+      "title": "Advertising and analytics",
+      "text": "The app does not include advertising or analytics SDKs. It does not access your contacts or request your location. The myGrovia team does not sell your personal information."
+    },
+    {
+      "title": "Retention and deletion",
+      "text": "Local information remains on your device until you remove it or clear the app's storage. Removing a plant deletes its collection record and watering history. Removing a bookmark deletes that saved selection. Copies of personal photos that are no longer used may remain in private app storage until you clear the app's storage or uninstall it. Clearing app storage in Android settings or uninstalling removes the local app data. This does not delete your original gallery photos."
+    },
+    {
+      "title": "Android backups and device transfers",
+      "text": "Android backup and device-transfer features may copy or restore app data depending on your device and Google Account settings. Such backups are managed by Android and your backup provider; the myGrovia team does not operate an app cloud-sync service. You can manage backup settings and existing backups through your device or backup provider."
+    },
+    {
+      "title": "Support messages",
+      "text": "If you email support.grovia@gmail.com, we receive your email address, message, and any attachments you choose to send. We use them to respond and troubleshoot your request, and retain them only for as long as needed to handle that inquiry. Support email is handled through Gmail under Google's privacy policy: https://policies.google.com/privacy ."
+    },
+    {
+      "title": "Security",
+      "text": "The app uses Android's private app storage for local data and HTTPS for its GitHub requests. Access also depends on your device security and backup settings. No storage or transmission method can be guaranteed completely secure."
+    },
+    {
+      "title": "Policy changes",
+      "text": "If the app's data handling changes, we will update this policy and its effective date. The current policy is available in the app's Privacy policy menu and on this page."
+    },
+    {
+      "title": "Contact",
+      "text": "For privacy questions or requests about information you sent to support, contact the myGrovia team at support.grovia@gmail.com."
+    }
+  ]
+}

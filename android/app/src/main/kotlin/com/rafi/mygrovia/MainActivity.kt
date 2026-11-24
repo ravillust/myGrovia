@@ -1,4 +1,4 @@
-package com.rafifairuz.my_grovia
+package com.rafi.mygrovia
 
 import io.flutter.embedding.android.FlutterActivity
 

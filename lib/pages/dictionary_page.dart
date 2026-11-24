@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../model/plant.dart';
 import '../widgets/plant_widgets.dart';
 import '../widgets/about_sources_dialog.dart';
+import '../widgets/privacy_policy_dialog.dart';
 import 'plant_detail_page.dart';
 
 class DictionaryPage extends StatefulWidget {
@@ -148,6 +149,11 @@ class _DictionaryPageState extends State<DictionaryPage> {
               context: context,
               builder: (_) => const AboutSourcesDialog(),
             );
+          } else if (value == 'privacy') {
+            showDialog<void>(
+              context: context,
+              builder: (_) => const PrivacyPolicyDialog(),
+            );
           }
         },
         itemBuilder: (_) => [
@@ -168,6 +174,16 @@ class _DictionaryPageState extends State<DictionaryPage> {
                 Icon(Icons.info_outline, color: plantGreen),
                 SizedBox(width: 12),
                 Text('About & sources'),
+              ],
+            ),
+          ),
+          const PopupMenuItem(
+            value: 'privacy',
+            child: Row(
+              children: [
+                Icon(Icons.privacy_tip_outlined, color: plantGreen),
+                SizedBox(width: 12),
+                Text('Privacy policy'),
               ],
             ),
           ),

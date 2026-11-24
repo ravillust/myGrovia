@@ -64,6 +64,15 @@ void main() {
       expect(find.text('No saved plants yet'), findsOneWidget);
       await choose('All plants');
       expect(find.text('Plant dictionary'), findsOneWidget);
+      await choose('Privacy policy');
+      expect(find.text('myGrovia Privacy Policy'), findsOneWidget);
+      expect(find.text('support.grovia@gmail.com'), findsOneWidget);
+      await tester.ensureVisible(find.text('Retention and deletion'));
+      await tester.pumpAndSettle();
+      expect(find.text('Retention and deletion').hitTestable(), findsOneWidget);
+      await tester.tap(find.text('Close'));
+      await tester.pumpAndSettle();
+      expect(find.text('Plant dictionary'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

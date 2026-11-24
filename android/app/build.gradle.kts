@@ -15,7 +15,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.rafifairuz.my_grovia"
+    namespace = "com.rafi.mygrovia"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -25,7 +25,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.rafifairuz.my_grovia"
+        applicationId = "com.rafi.mygrovia"
         if (presentationBuild) applicationIdSuffix = ".presentation"
         manifestPlaceholders["appLabel"] = "myGrovia"
         // You can update the following values to match your application needs.

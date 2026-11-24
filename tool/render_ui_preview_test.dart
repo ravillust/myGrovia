@@ -20,6 +20,7 @@ import 'package:my_grovia/widgets/plant_information_dialog.dart';
 import 'package:my_grovia/widgets/about_sources_dialog.dart';
 import 'package:my_grovia/widgets/watering_interval_dialog.dart';
 import 'package:my_grovia/widgets/watering_dialog.dart';
+import 'package:my_grovia/widgets/privacy_policy_dialog.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -167,6 +168,7 @@ void main() {
         onDelete: () {},
       ),
       'about-sources': const Scaffold(body: AboutSourcesDialog()),
+      'privacy-policy': const Scaffold(body: PrivacyPolicyDialog()),
     };
     for (final entry in pages.entries) {
       await tester.pumpWidget(const SizedBox());
